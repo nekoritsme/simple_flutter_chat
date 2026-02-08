@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_flutter_chat/firebase_options.dart';
 import 'package:simple_flutter_chat/screens/auth.dart';
+import 'package:simple_flutter_chat/screens/chats.dart';
+import 'package:simple_flutter_chat/screens/splash.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 void main() {
@@ -52,7 +55,20 @@ class ChatApp extends StatelessWidget {
           ),
         ),
       ),
-      home: AuthScreen(),
+      home: StreamBuilder(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (ctx, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return SplashScreen();
+          }
+
+          if (snapshot.hasData) {
+            return const ChatsSreen();
+          }
+
+          return const AuthScreen();
+        },
+      ),
     );
   }
 }
