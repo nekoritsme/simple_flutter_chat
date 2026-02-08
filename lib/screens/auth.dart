@@ -10,6 +10,10 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
+  void _handleLogin(String email, String password) {}
+
+  void _handleSignup(String nickname, String email, String password) {}
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -42,7 +46,12 @@ class _AuthScreenState extends State<AuthScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            Expanded(child: AuthTabsWidget()),
+            Expanded(
+              child: AuthTabsWidget(
+                onLogin: _handleLogin,
+                onSignup: _handleSignup,
+              ),
+            ),
           ],
         ),
       ),

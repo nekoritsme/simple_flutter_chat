@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 class AuthTabsWidget extends StatefulWidget {
-  const AuthTabsWidget({super.key});
+  const AuthTabsWidget({
+    super.key,
+    required this.onLogin,
+    required this.onSignup,
+  });
+
+  final Function(String email, String password) onLogin;
+  final Function(String nickname, String email, String password) onSignup;
 
   @override
   State<AuthTabsWidget> createState() => _AuthTabsWidgetState();
@@ -11,6 +19,30 @@ class _AuthTabsWidgetState extends State<AuthTabsWidget>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   bool _isPasswordVisible = false;
+  bool _isLogin = true;
+
+  final _loginFormKey = GlobalKey<FormState>();
+  final _signUpFormKey = GlobalKey<FormState>();
+
+  String _enteredNickname = "";
+  String _enteredPassword = "";
+  String _enteredEmail = "";
+
+  final talker = Talker();
+
+  void _submit() {
+    talker.info("${_tabController.index}");
+
+    final form = _tabController.index == 0 ? _loginFormKey : _signUpFormKey;
+    final isValid = form.currentState!.validate();
+
+    if (!isValid) return talker.info("Form is not valid");
+    form.currentState!.save();
+
+    _tabController.index == 0
+        ? widget.onLogin(_enteredEmail, _enteredPassword)
+        : widget.onSignup(_enteredNickname, _enteredEmail, _enteredPassword);
+  }
 
   @override
   void initState() {
@@ -59,6 +91,7 @@ class _AuthTabsWidgetState extends State<AuthTabsWidget>
                 Column(
                   children: [
                     Form(
+                      key: _loginFormKey,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -109,6 +142,9 @@ class _AuthTabsWidgetState extends State<AuthTabsWidget>
                               }
 
                               return null;
+                            },
+                            onSaved: (value) {
+                              _enteredEmail = value!;
                             },
                           ),
                           const SizedBox(height: 15),
@@ -174,6 +210,9 @@ class _AuthTabsWidgetState extends State<AuthTabsWidget>
 
                               return null;
                             },
+                            onSaved: (value) {
+                              _enteredPassword = value!;
+                            },
                           ),
                           const SizedBox(height: 40),
                           Center(
@@ -201,7 +240,9 @@ class _AuthTabsWidgetState extends State<AuthTabsWidget>
                                     ),
                                   ),
                                 ),
-                                onPressed: () {},
+                                onPressed: () {
+                                  _submit();
+                                },
                                 child: Text(
                                   "Login",
                                   style: theme.textTheme.titleLarge,
@@ -217,6 +258,7 @@ class _AuthTabsWidgetState extends State<AuthTabsWidget>
                 Column(
                   children: [
                     Form(
+                      key: _signUpFormKey,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -259,6 +301,18 @@ class _AuthTabsWidgetState extends State<AuthTabsWidget>
                               ),
                             ),
                             autocorrect: false,
+                            validator: (value) {
+                              if (value == null ||
+                                  value.isEmpty ||
+                                  value.trim().length < 3) {
+                                return "Please enter valid nickname";
+                              }
+
+                              return null;
+                            },
+                            onSaved: (value) {
+                              _enteredNickname = value!;
+                            },
                           ),
                           const SizedBox(height: 15),
                           Text(
@@ -307,6 +361,9 @@ class _AuthTabsWidgetState extends State<AuthTabsWidget>
                               }
 
                               return null;
+                            },
+                            onSaved: (value) {
+                              _enteredEmail = value!;
                             },
                           ),
                           const SizedBox(height: 15),
@@ -372,6 +429,9 @@ class _AuthTabsWidgetState extends State<AuthTabsWidget>
 
                               return null;
                             },
+                            onSaved: (value) {
+                              _enteredPassword = value!;
+                            },
                           ),
                           const SizedBox(height: 40),
                           Center(
@@ -399,7 +459,9 @@ class _AuthTabsWidgetState extends State<AuthTabsWidget>
                                     ),
                                   ),
                                 ),
-                                onPressed: () {},
+                                onPressed: () {
+                                  _submit();
+                                },
                                 child: Text(
                                   "Sign Up",
                                   style: theme.textTheme.titleLarge,
