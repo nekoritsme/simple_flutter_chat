@@ -1,6 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 import '../widgets/auth_tabs.dart';
+
+final _firebase = FirebaseAuth.instance;
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -10,9 +14,19 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
+  final talker = Talker();
+
   void _handleLogin(String email, String password) {}
 
-  void _handleSignup(String nickname, String email, String password) {}
+  void _handleSignup(String nickname, String email, String password) async {
+    talker.info("Hi");
+    final userCredentials = await _firebase.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    talker.info("User credentials: $userCredentials");
+  }
 
   @override
   Widget build(BuildContext context) {

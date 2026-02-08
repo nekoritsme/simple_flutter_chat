@@ -1,5 +1,7 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:simple_flutter_chat/firebase_options.dart';
 import 'package:simple_flutter_chat/screens/auth.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
@@ -8,8 +10,12 @@ void main() {
 
   runTalkerZonedGuarded(
     talker,
-    () {
+    () async {
       WidgetsFlutterBinding.ensureInitialized();
+
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
       runApp(ChatApp());
     },
     (error, stackTrace) {

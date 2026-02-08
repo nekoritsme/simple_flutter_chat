@@ -1,4 +1,4 @@
-package com.Marat.simple_flutter_chat
+package com.marat.simple_flutter_chat
 
 import io.flutter.embedding.android.FlutterActivity
 
