@@ -16,16 +16,37 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   final talker = Talker();
 
-  void _handleLogin(String email, String password) {}
+  void _scaffoldMessage(String? msg) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(msg ?? "Authentication failed")));
+  }
+
+  void _handleLogin(String email, String password) async {
+    try {
+      final userCredentials = await _firebase.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      talker.info("User credentials logined: $userCredentials");
+    } on FirebaseAuthException catch (err) {
+      _scaffoldMessage(err.message);
+    }
+  }
 
   void _handleSignup(String nickname, String email, String password) async {
-    talker.info("Hi");
-    final userCredentials = await _firebase.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    try {
+      final userCredentials = await _firebase.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-    talker.info("User credentials: $userCredentials");
+      talker.info("User credentials registred: $userCredentials");
+    } on FirebaseAuthException catch (err) {
+      _scaffoldMessage(err.message);
+    }
   }
 
   @override
