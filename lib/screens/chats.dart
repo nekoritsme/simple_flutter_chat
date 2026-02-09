@@ -47,6 +47,25 @@ class _ChatsSreenState extends State<ChatsSreen> {
           ),
         ],
       ),
+      floatingActionButton: Container(
+        width: 70,
+        height: 70,
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: theme.colorScheme.onPrimary.withAlpha(100),
+              blurRadius: 30,
+              spreadRadius: -8,
+            ),
+          ],
+        ),
+        child: FloatingActionButton(
+          shape: CircleBorder(),
+          backgroundColor: theme.colorScheme.primary,
+          onPressed: () {},
+          child: Icon(Icons.add_comment_outlined, color: Colors.white),
+        ),
+      ),
       backgroundColor: theme.colorScheme.onSurface,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
