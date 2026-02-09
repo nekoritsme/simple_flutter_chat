@@ -304,7 +304,8 @@ class _AuthTabsWidgetState extends State<AuthTabsWidget>
                             validator: (value) {
                               if (value == null ||
                                   value.isEmpty ||
-                                  value.trim().length < 3) {
+                                  value.trim().length < 3 ||
+                                  value.trim().length > 10) {
                                 return "Please enter valid nickname";
                               }
 
