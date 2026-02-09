@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ChatsSreen extends StatefulWidget {
@@ -37,7 +38,9 @@ class _ChatsSreenState extends State<ChatsSreen> {
                 color: theme.colorScheme.primary.withAlpha(90),
               ),
               child: IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  FirebaseAuth.instance.signOut();
+                },
                 icon: Icon(Icons.exit_to_app, color: theme.colorScheme.primary),
               ),
             ),
