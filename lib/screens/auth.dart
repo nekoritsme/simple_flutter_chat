@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -44,6 +45,15 @@ class _AuthScreenState extends State<AuthScreen> {
       );
 
       talker.info("User credentials registred: $userCredentials");
+
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(userCredentials.user!.uid)
+          .set({
+            "nickname": nickname,
+            "email": email,
+            "createdAt": Timestamp.now(),
+          });
     } on FirebaseAuthException catch (err) {
       _scaffoldMessage(err.message);
     }
