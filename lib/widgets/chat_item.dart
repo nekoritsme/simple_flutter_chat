@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
 
 class ChatItemWidget extends StatelessWidget {
-  const ChatItemWidget({super.key});
+  const ChatItemWidget({
+    super.key,
+    required this.chatNickname,
+    required this.lastMessage,
+    required this.lastMessageTimestamp,
+    required this.unreadCount,
+  });
+
+  final String chatNickname;
+  final String? lastMessage;
+  final String lastMessageTimestamp;
+  final int unreadCount;
 
   @override
   Widget build(BuildContext context) {
@@ -11,23 +22,25 @@ class ChatItemWidget extends StatelessWidget {
       onTap: () {},
       child: ListTile(
         title: Text(
-          "Placeholder title",
+          chatNickname,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: Colors.white,
             fontWeight: FontWeight.w700,
           ),
         ),
         subtitle: Text(
-          "Placeholder of last message in that chat.",
+          lastMessage ?? "",
           style: theme.textTheme.bodyMedium?.copyWith(fontSize: 11),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         trailing: Column(
           children: [
-            const Text("2m ago"),
-            const SizedBox(height: 5),
-            const Text("3"),
+            Text(lastMessageTimestamp),
+            // const SizedBox(height: 5),
+            // const Text("3"),
+            //
+            // if (unreadCount > 0) Text(unreadCount.toString()),
           ],
         ),
         leading: CircleAvatar(

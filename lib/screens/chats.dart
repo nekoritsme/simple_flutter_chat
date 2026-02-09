@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:simple_flutter_chat/widgets/chat_item.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 import '../widgets/add_chat.dart';
+import '../widgets/chat_list.dart';
 
 class ChatsScreen extends StatefulWidget {
   const ChatsScreen({super.key});
@@ -155,9 +155,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
               ),
             ),
             const SizedBox(height: 15),
-            ChatItemWidget(),
-            // maybe ListView idk
-            // ListView.builder(itemBuilder: itemBuilder)
+            Expanded(child: ChatListWidget()),
           ],
         ),
       ),
