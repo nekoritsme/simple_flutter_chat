@@ -63,7 +63,7 @@ class ChatApp extends StatelessWidget {
           }
 
           if (snapshot.hasData) {
-            return const ChatsSreen();
+            return const ChatsScreen();
           }
 
           return const AuthScreen();

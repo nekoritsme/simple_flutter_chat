@@ -1,14 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:simple_flutter_chat/widgets/chat_item.dart';
 
-class ChatsSreen extends StatefulWidget {
-  const ChatsSreen({super.key});
+import '../widgets/add_chat.dart';
+
+class ChatsScreen extends StatefulWidget {
+  const ChatsScreen({super.key});
 
   @override
-  State<ChatsSreen> createState() => _ChatsSreenState();
+  State<ChatsScreen> createState() => _ChatsScreenState();
 }
 
-class _ChatsSreenState extends State<ChatsSreen> {
+class _ChatsScreenState extends State<ChatsScreen> {
+  void _onAddChat(String nickname) {}
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -62,7 +67,12 @@ class _ChatsSreenState extends State<ChatsSreen> {
         child: FloatingActionButton(
           shape: CircleBorder(),
           backgroundColor: theme.colorScheme.primary,
-          onPressed: () {},
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) => AddChatWidget(onAddChat: _onAddChat),
+            );
+          },
           child: Icon(Icons.add_comment_outlined, color: Colors.white),
         ),
       ),
@@ -94,6 +104,10 @@ class _ChatsSreenState extends State<ChatsSreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 15),
+            ChatItemWidget(),
+            // maybe ListView idk
+            // ListView.builder(itemBuilder: itemBuilder)
           ],
         ),
       ),
