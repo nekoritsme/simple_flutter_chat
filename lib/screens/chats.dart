@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_flutter_chat/widgets/chat_item.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 import '../widgets/add_chat.dart';
 
@@ -12,7 +14,55 @@ class ChatsScreen extends StatefulWidget {
 }
 
 class _ChatsScreenState extends State<ChatsScreen> {
-  void _onAddChat(String nickname) {}
+  final talker = Talker();
+
+  void _scaffoldMessage(String msg) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  void _onAddChat(String nickname) async {
+    final trimmedNickname = nickname.trim();
+
+    String generateChatId(String userId1, String userId2) {
+      final List<String> ids = [userId1, userId2]..sort();
+
+      return ids.join('_');
+    }
+
+    try {
+      final user = await FirebaseFirestore.instance
+          .collection("users")
+          .where("nickname", isEqualTo: trimmedNickname)
+          .get();
+
+      final bool isUserExists = user.docs.isNotEmpty;
+      if (!isUserExists) return _scaffoldMessage("User doesn't exists");
+
+      final currentUser = FirebaseAuth.instance.currentUser!.uid;
+      final otherUser = user.docs.first.id;
+
+      final chatId = generateChatId(currentUser, otherUser);
+      final chatDoc = await FirebaseFirestore.instance
+          .collection("chats")
+          .doc(chatId)
+          .get();
+
+      if (chatDoc.exists) return _scaffoldMessage("Chat already exists");
+
+      await FirebaseFirestore.instance.collection("chats").doc(chatId).set({
+        "participants": [currentUser, otherUser],
+        "createdAt": Timestamp.now(),
+        "lastMessage": null,
+        "lastMessageTimestamp": null,
+        "unreadCount": {currentUser: 0, otherUser: 0},
+      });
+
+      talker.info("Chat has been created");
+    } catch (err) {
+      talker.error(err);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
