@@ -15,7 +15,7 @@ class DirectMessagesWidget extends StatelessWidget {
     return StreamBuilder(
       stream: FirebaseFirestore.instance
           .collection("chats/$chatId/messages")
-          .orderBy("createdAt", descending: true)
+          .orderBy("createdAt", descending: false)
           .snapshots(),
       builder: (ctx, messagesSnapshots) {
         if (messagesSnapshots.connectionState == ConnectionState.waiting) {

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../screens/direct.dart';
+
 class ChatItemWidget extends StatelessWidget {
   const ChatItemWidget({
     super.key,
@@ -7,19 +9,28 @@ class ChatItemWidget extends StatelessWidget {
     required this.lastMessage,
     required this.lastMessageTimestamp,
     required this.unreadCount,
+    required this.chatId,
   });
 
   final String chatNickname;
   final String? lastMessage;
   final String lastMessageTimestamp;
   final int unreadCount;
+  final String chatId;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (ctx) => DirectMessagesScreen(chatId: chatId),
+          ),
+        );
+      },
       child: ListTile(
         title: Text(
           chatNickname,

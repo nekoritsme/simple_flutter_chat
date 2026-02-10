@@ -51,6 +51,7 @@ class ChatListWidget extends StatelessWidget {
                     lastMessage: "",
                     lastMessageTimestamp: "",
                     unreadCount: 0,
+                    chatId: "wait",
                   );
                 }
 
@@ -60,6 +61,7 @@ class ChatListWidget extends StatelessWidget {
                     lastMessage: "",
                     lastMessageTimestamp: "",
                     unreadCount: 0,
+                    chatId: "error",
                   );
                 }
 
@@ -69,6 +71,7 @@ class ChatListWidget extends StatelessWidget {
                     lastMessage: "",
                     lastMessageTimestamp: "",
                     unreadCount: 0,
+                    chatId: "not found",
                   );
                 }
 
@@ -84,6 +87,7 @@ class ChatListWidget extends StatelessWidget {
                   lastMessage: loadedChats[index]["lastMessage"],
                   lastMessageTimestamp: time,
                   unreadCount: loadedChats[index]["unreadCount"][user!.uid],
+                  chatId: loadedChats[index].id,
                 );
               },
             );
