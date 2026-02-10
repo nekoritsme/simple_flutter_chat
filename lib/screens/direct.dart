@@ -1,7 +1,51 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:simple_flutter_chat/widgets/direct_messages.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
-class DirectMessagesScreen extends StatelessWidget {
-  const DirectMessagesScreen({super.key});
+class DirectMessagesScreen extends StatefulWidget {
+  DirectMessagesScreen({super.key, required this.chatId});
+
+  final chatId;
+
+  @override
+  State<DirectMessagesScreen> createState() => _DirectMessagesScreenState();
+}
+
+class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
+  final _messageController = TextEditingController();
+  final talker = Talker();
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  void _submitMessage() async {
+    final enteredMessage = _messageController.text;
+    talker.info(enteredMessage);
+    if (enteredMessage.isEmpty) return;
+    FocusScope.of(context).unfocus();
+    final user = FirebaseAuth.instance.currentUser;
+
+    final userData = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(user!.uid)
+        .get();
+
+    await FirebaseFirestore.instance
+        .collection("chats/${widget.chatId}/messages")
+        .add({
+          "text": enteredMessage,
+          "createdAt": Timestamp.now(),
+          "userId": FirebaseAuth.instance.currentUser!.uid,
+          "nickname": userData.data()!["nickname"],
+        });
+
+    _messageController.clear();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,10 +55,7 @@ class DirectMessagesScreen extends StatelessWidget {
       backgroundColor: theme.colorScheme.onSurface,
       bottomSheet: BottomSheet(
         shape: Border(
-          top: BorderSide(
-            color: theme.colorScheme.onSurfaceVariant,
-            width: 1,
-          )
+          top: BorderSide(color: theme.colorScheme.onSurfaceVariant, width: 1),
         ),
         onClosing: () {},
         builder: (ctx) => SizedBox(
@@ -30,6 +71,7 @@ class DirectMessagesScreen extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.only(left: 16),
                     child: TextField(
+                      controller: _messageController,
                       style: theme.textTheme.bodyMedium,
                       decoration: InputDecoration(
                         filled: true,
@@ -59,7 +101,9 @@ class DirectMessagesScreen extends StatelessWidget {
                   child: FloatingActionButton(
                     shape: CircleBorder(),
                     backgroundColor: theme.colorScheme.primary,
-                    onPressed: () {},
+                    onPressed: () {
+                      _submitMessage();
+                    },
                     child: Icon(Icons.send, color: Colors.white),
                   ),
                 ),
@@ -83,6 +127,12 @@ class DirectMessagesScreen extends StatelessWidget {
             color: theme.colorScheme.primary,
           ),
         ),
+      ),
+      body: Column(
+        children: [
+          Expanded(child: DirectMessagesWidget(chatId: widget.chatId)),
+          const SizedBox(height: 120),
+        ],
       ),
     );
   }
