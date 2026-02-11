@@ -3,10 +3,31 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_flutter_chat/widgets/message_bubble.dart';
 
-class DirectMessagesWidget extends StatelessWidget {
-  const DirectMessagesWidget({super.key, required this.chatId});
+class DirectMessagesWidget extends StatefulWidget {
+  DirectMessagesWidget({super.key, required this.chatId});
 
   final String chatId;
+
+  @override
+  State<DirectMessagesWidget> createState() => _DirectMessagesWidgetState();
+}
+
+class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
+  final _scrollController = ScrollController();
+
+  void _scrollToBottom() {
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +35,7 @@ class DirectMessagesWidget extends StatelessWidget {
 
     return StreamBuilder(
       stream: FirebaseFirestore.instance
-          .collection("chats/$chatId/messages")
+          .collection("chats/${widget.chatId}/messages")
           .orderBy("createdAt", descending: false)
           .snapshots(),
       builder: (ctx, messagesSnapshots) {
@@ -33,9 +54,28 @@ class DirectMessagesWidget extends StatelessWidget {
 
         final loadedMessages = messagesSnapshots.data!.docs;
 
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.jumpTo(
+              _scrollController.position.maxScrollExtent,
+            );
+
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (_scrollController.hasClients && mounted) {
+                _scrollController.animateTo(
+                  _scrollController.position.maxScrollExtent,
+                  duration: Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                );
+              }
+            });
+          }
+        });
+
         return ListView.separated(
           itemCount: loadedMessages.length,
           reverse: false,
+          controller: _scrollController,
           itemBuilder: (contx, index) {
             final chatMessage = loadedMessages[index].data();
             final nextChatMessage = index + 1 < loadedMessages.length
