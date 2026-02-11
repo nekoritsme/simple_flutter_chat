@@ -145,7 +145,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                hintText: "Search messages",
+                hintText: "Search chats",
                 hintStyle: TextStyle(color: theme.colorScheme.primary),
                 prefixIcon: Icon(
                   size: 25,

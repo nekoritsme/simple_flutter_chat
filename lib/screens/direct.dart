@@ -93,6 +93,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                     boxShadow: [
                       BoxShadow(
                         color: theme.colorScheme.onPrimary.withAlpha(100),
+                        offset: Offset(-8, 0),
                         blurRadius: 30,
                         spreadRadius: -8,
                       ),
