@@ -27,7 +27,10 @@ class ChatItemWidget extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (ctx) => DirectMessagesScreen(chatId: chatId),
+            builder: (ctx) => DirectMessagesScreen(
+              chatId: chatId,
+              chatNickname: chatNickname,
+            ),
           ),
         );
       },

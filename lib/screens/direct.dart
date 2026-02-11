@@ -5,9 +5,14 @@ import 'package:simple_flutter_chat/widgets/direct_messages.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 class DirectMessagesScreen extends StatefulWidget {
-  DirectMessagesScreen({super.key, required this.chatId});
+  DirectMessagesScreen({
+    super.key,
+    required this.chatId,
+    required this.chatNickname,
+  });
 
   final chatId;
+  final chatNickname;
 
   @override
   State<DirectMessagesScreen> createState() => _DirectMessagesScreenState();
@@ -115,7 +120,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
       ),
       appBar: AppBar(
         title: Text(
-          "Nickname holder",
+          widget.chatNickname,
           style: theme.textTheme.titleLarge?.copyWith(fontSize: 14),
         ),
         backgroundColor: theme.colorScheme.onSurface,
