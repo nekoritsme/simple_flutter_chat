@@ -87,7 +87,7 @@ class ChatItemWidget extends StatelessWidget {
                 child: CircleAvatar(
                   backgroundColor: theme.colorScheme.primary,
                   child: Text(
-                    unreadCount.toString(),
+                    unreadCount >= 99 ? 99.toString() : unreadCount.toString(),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w800,
