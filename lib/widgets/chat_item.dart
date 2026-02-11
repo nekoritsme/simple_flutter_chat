@@ -53,6 +53,12 @@ class ChatItemWidget extends StatelessWidget {
             color: unreadCount > 0 ? theme.colorScheme.primary : null,
             fontWeight: FontWeight.w800,
             fontSize: 12,
+            fontFamilyFallback: const [
+              'Roboto',
+              'Apple Color Emoji',
+              'Noto Color Emoji',
+              'Segoe UI Emoji',
+            ],
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
