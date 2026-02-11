@@ -2,11 +2,42 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_flutter_chat/widgets/chat_item.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 class ChatListWidget extends StatelessWidget {
   ChatListWidget({super.key});
 
   final user = FirebaseAuth.instance.currentUser;
+  final talker = Talker();
+
+  Stream<int> _getUnreadCount(String chatId, String userId) {
+    return FirebaseFirestore.instance
+        .collection('chats')
+        .doc(chatId)
+        .snapshots()
+        .asyncMap((chatDoc) async {
+          final lastRead =
+              chatDoc.data()?['lastReadTimestamp'][userId] as Timestamp?;
+
+          if (lastRead == null) {
+            final allMessages = await FirebaseFirestore.instance
+                .collection('chats/$chatId/messages')
+                .where('userId', isNotEqualTo: userId)
+                .count()
+                .get();
+            return allMessages.count ?? 0;
+          }
+
+          final unreadMessages = await FirebaseFirestore.instance
+              .collection('chats/$chatId/messages')
+              .where('userId', isNotEqualTo: userId)
+              .where('createdAt', isGreaterThan: lastRead)
+              .count()
+              .get();
+
+          return unreadMessages.count ?? 0;
+        });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,9 +65,23 @@ class ChatListWidget extends StatelessWidget {
         return ListView.builder(
           itemCount: loadedChats.length,
           itemBuilder: (ctx, index) {
-            final otherUser = loadedChats[index]['participants'].firstWhere(
-              (id) => id != user!.uid,
+            final participants = List<String>.from(
+              loadedChats[index]['participants'] ?? const [],
             );
+            final otherUser = participants.firstWhere(
+              (id) => id != user!.uid,
+              orElse: () => '',
+            );
+
+            if (otherUser.isEmpty) {
+              return ChatItemWidget(
+                chatNickname: "Invalid chat",
+                lastMessage: "",
+                lastMessageTimestamp: Timestamp(0, 0),
+                unreadCount: 0,
+                chatId: loadedChats[index].id,
+              );
+            }
 
             return StreamBuilder(
               key: ValueKey(loadedChats[index].id),
@@ -49,7 +94,7 @@ class ChatListWidget extends StatelessWidget {
                   return ChatItemWidget(
                     chatNickname: "Loading...",
                     lastMessage: "",
-                    lastMessageTimestamp: "",
+                    lastMessageTimestamp: Timestamp(0, 0),
                     unreadCount: 0,
                     chatId: "wait",
                   );
@@ -59,7 +104,7 @@ class ChatListWidget extends StatelessWidget {
                   return ChatItemWidget(
                     chatNickname: "Error loading user",
                     lastMessage: "",
-                    lastMessageTimestamp: "",
+                    lastMessageTimestamp: Timestamp(0, 0),
                     unreadCount: 0,
                     chatId: "error",
                   );
@@ -69,7 +114,7 @@ class ChatListWidget extends StatelessWidget {
                   return ChatItemWidget(
                     chatNickname: "User not found",
                     lastMessage: "",
-                    lastMessageTimestamp: "",
+                    lastMessageTimestamp: Timestamp(0, 0),
                     unreadCount: 0,
                     chatId: "not found",
                   );
@@ -82,12 +127,21 @@ class ChatListWidget extends StatelessWidget {
 
                 time == null ? time = "" : time.toDate().toString();
 
-                return ChatItemWidget(
-                  chatNickname: nickname,
-                  lastMessage: loadedChats[index]["lastMessage"],
-                  lastMessageTimestamp: time,
-                  unreadCount: loadedChats[index]["unreadCount"][user!.uid],
-                  chatId: loadedChats[index].id,
+                return StreamBuilder(
+                  stream: _getUnreadCount(loadedChats[index].id, user!.uid),
+                  builder: (context, unreadSnapshot) {
+                    final unreadCount = unreadSnapshot.data ?? 0;
+
+                    talker.info("Unread counter: $unreadCount");
+
+                    return ChatItemWidget(
+                      chatNickname: nickname,
+                      lastMessage: loadedChats[index]["lastMessage"],
+                      lastMessageTimestamp: time,
+                      unreadCount: unreadCount,
+                      chatId: loadedChats[index].id,
+                    );
+                  },
                 );
               },
             );

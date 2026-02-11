@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -18,13 +20,69 @@ class DirectMessagesScreen extends StatefulWidget {
   State<DirectMessagesScreen> createState() => _DirectMessagesScreenState();
 }
 
-class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
+class _DirectMessagesScreenState extends State<DirectMessagesScreen>
+    with WidgetsBindingObserver {
   final _messageController = TextEditingController();
   final talker = Talker();
+  final _user = FirebaseAuth.instance.currentUser;
+  StreamSubscription<QuerySnapshot>? _messageSubscription;
+
+  void _updateReadStatus() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection("chats")
+          .doc(widget.chatId)
+          .update({
+            "lastReadTimestamp.${_user!.uid}": FieldValue.serverTimestamp(),
+          });
+    } catch (err, stack) {
+      talker.error(err, stack);
+    }
+  }
+
+  void _setupMessageListener() {
+    _messageSubscription = FirebaseFirestore.instance
+        .collection("chats/${widget.chatId}/messages")
+        .orderBy("createdAt", descending: false)
+        .limit(1)
+        .snapshots()
+        .listen((snapshot) {
+          for (var change in snapshot.docChanges) {
+            if (change.type == DocumentChangeType.added) {
+              final messageData = change.doc.data();
+
+              if (messageData?["userId"] != _user!.uid) {
+                _updateReadStatus();
+              }
+            }
+          }
+        });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _updateReadStatus();
+    _setupMessageListener();
+
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _updateReadStatus();
+    } else if (state == AppLifecycleState.resumed) {
+      _updateReadStatus();
+    }
+  }
 
   @override
   void dispose() {
     _messageController.dispose();
+    _messageSubscription?.cancel();
+
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -33,20 +91,27 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
     talker.info(enteredMessage);
     if (enteredMessage.isEmpty) return;
     FocusScope.of(context).unfocus();
-    final user = FirebaseAuth.instance.currentUser;
 
     final userData = await FirebaseFirestore.instance
         .collection("users")
-        .doc(user!.uid)
+        .doc(_user!.uid)
         .get();
 
     await FirebaseFirestore.instance
         .collection("chats/${widget.chatId}/messages")
         .add({
           "text": enteredMessage,
-          "createdAt": Timestamp.now(),
+          "createdAt": FieldValue.serverTimestamp(),
           "userId": FirebaseAuth.instance.currentUser!.uid,
           "nickname": userData.data()!["nickname"],
+        });
+
+    await FirebaseFirestore.instance
+        .collection("chats")
+        .doc(widget.chatId)
+        .update({
+          "lastMessageTimestamp": FieldValue.serverTimestamp(),
+          "lastMessage": enteredMessage,
         });
 
     _messageController.clear();

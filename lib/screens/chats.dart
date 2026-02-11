@@ -52,10 +52,13 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
       await FirebaseFirestore.instance.collection("chats").doc(chatId).set({
         "participants": [currentUser, otherUser],
-        "createdAt": Timestamp.now(),
+        "createdAt": FieldValue.serverTimestamp(),
         "lastMessage": null,
         "lastMessageTimestamp": null,
-        "unreadCount": {currentUser: 0, otherUser: 0},
+        "lastReadTimestamp": {
+          currentUser: FieldValue.serverTimestamp(),
+          otherUser: FieldValue.serverTimestamp(),
+        },
       });
 
       talker.info("Chat has been created");

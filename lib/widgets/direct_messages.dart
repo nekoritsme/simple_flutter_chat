@@ -15,14 +15,6 @@ class DirectMessagesWidget extends StatefulWidget {
 class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
   final _scrollController = ScrollController();
 
-  void _scrollToBottom() {
-    _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent,
-      duration: Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
-  }
-
   @override
   void dispose() {
     _scrollController.dispose();
