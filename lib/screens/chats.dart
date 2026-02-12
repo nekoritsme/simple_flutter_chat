@@ -15,10 +15,32 @@ class ChatsScreen extends StatefulWidget {
 
 class _ChatsScreenState extends State<ChatsScreen> {
   final talker = Talker();
+  String _userNickname = "Loading...";
 
   void _scaffoldMessage(String msg) {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  Future<String> _getNickname() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    final currentUserNickname = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(user!.uid)
+        .get();
+
+    return currentUserNickname["nickname"];
+  }
+
+  @override
+  void initState() {
+    _getNickname().then((nickname) {
+      setState(() {
+        _userNickname = nickname;
+      });
+    });
+    super.initState();
   }
 
   void _onAddChat(String nickname) async {
@@ -87,6 +109,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
             ),
           ),
         ),
+        title: Text(_userNickname, style: theme.textTheme.titleLarge),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
