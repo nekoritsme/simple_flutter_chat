@@ -31,11 +31,13 @@ class ChatItemWidget extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (ctx) => DirectMessagesScreen(
-              chatId: chatId,
-              chatNickname: chatNickname,
-            ),
+          PageRouteBuilder(
+            barrierColor: Color.fromARGB(255, 16, 28, 34),
+            pageBuilder: (ctx, animation, secondaryAnimation) =>
+                DirectMessagesScreen(
+                  chatId: chatId,
+                  chatNickname: chatNickname,
+                ),
           ),
         );
       },
