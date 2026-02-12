@@ -133,10 +133,6 @@ class ChatItemWidget extends StatelessWidget {
               ),
             if (unreadCount == 0 && lastMessageTimestamp != null)
               Icon(Icons.done_all, color: theme.colorScheme.primary),
-            // const SizedBox(height: 5),
-            // const Text("3"),
-            //
-            // if (unreadCount > 0) Text(unreadCount.toString()),
           ],
         ),
         leading: CircleAvatar(

@@ -5,10 +5,11 @@ import 'package:simple_flutter_chat/widgets/chat_item.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 class ChatListWidget extends StatelessWidget {
-  ChatListWidget({super.key});
+  ChatListWidget({super.key, required this.searchQuery});
 
   final user = FirebaseAuth.instance.currentUser;
   final talker = Talker();
+  final String searchQuery;
 
   Stream<int> _getUnreadCount(String chatId, String userId) {
     return FirebaseFirestore.instance
@@ -126,6 +127,11 @@ class ChatListWidget extends StatelessWidget {
                 var time = loadedChats[index]["lastMessageTimestamp"];
 
                 time == null ? time = null : time.toDate().toString();
+
+                if (searchQuery.isNotEmpty &&
+                    !nickname.toLowerCase().contains(searchQuery)) {
+                  return SizedBox.shrink();
+                }
 
                 return StreamBuilder(
                   stream: _getUnreadCount(loadedChats[index].id, user!.uid),

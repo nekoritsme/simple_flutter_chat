@@ -16,6 +16,8 @@ class ChatsScreen extends StatefulWidget {
 class _ChatsScreenState extends State<ChatsScreen> {
   final talker = Talker();
   String _userNickname = "Loading...";
+  final _searchController = TextEditingController();
+  String _searchQuery = "";
 
   void _scaffoldMessage(String msg) {
     ScaffoldMessenger.of(context).clearSnackBars();
@@ -35,12 +37,23 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
   @override
   void initState() {
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.trim().toLowerCase();
+      });
+    });
     _getNickname().then((nickname) {
       setState(() {
         _userNickname = nickname;
       });
     });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   void _onAddChat(String nickname) async {
@@ -164,6 +177,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
             ),
             const SizedBox(height: 15),
             TextField(
+              controller: _searchController,
               style: theme.textTheme.bodyMedium,
               decoration: InputDecoration(
                 filled: true,
@@ -181,7 +195,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
               ),
             ),
             const SizedBox(height: 15),
-            Expanded(child: ChatListWidget()),
+            Expanded(child: ChatListWidget(searchQuery: _searchQuery)),
           ],
         ),
       ),
