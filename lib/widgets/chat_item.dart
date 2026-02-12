@@ -16,16 +16,16 @@ class ChatItemWidget extends StatelessWidget {
 
   final String chatNickname;
   final String? lastMessage;
-  final Timestamp lastMessageTimestamp;
+  final Timestamp? lastMessageTimestamp;
   final int unreadCount;
   final String chatId;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final lastMessageTime = DateFormat(
-      "hh:mm",
-    ).format(lastMessageTimestamp.toDate());
+    final lastMessageTime = lastMessageTimestamp != null
+        ? DateFormat("hh:mm").format(lastMessageTimestamp!.toDate())
+        : "";
 
     return GestureDetector(
       onTap: () {
@@ -104,7 +104,7 @@ class ChatItemWidget extends StatelessWidget {
                   ),
                 ),
               ),
-            if (unreadCount == 0)
+            if (unreadCount == 0 && lastMessageTimestamp != null)
               Icon(Icons.done_all, color: theme.colorScheme.primary),
             // const SizedBox(height: 5),
             // const Text("3"),

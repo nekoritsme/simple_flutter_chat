@@ -125,7 +125,7 @@ class ChatListWidget extends StatelessWidget {
 
                 var time = loadedChats[index]["lastMessageTimestamp"];
 
-                time == null ? time = "" : time.toDate().toString();
+                time == null ? time = null : time.toDate().toString();
 
                 return StreamBuilder(
                   stream: _getUnreadCount(loadedChats[index].id, user!.uid),
