@@ -20,12 +20,39 @@ class ChatItemWidget extends StatelessWidget {
   final int unreadCount;
   final String chatId;
 
+  String _formatChatTimestamp(Timestamp? timestamp) {
+    if (timestamp == null) return "";
+
+    final DateTime messageTime = timestamp.toDate();
+    final DateTime now = DateTime.now();
+    final Duration difference = now.difference(messageTime);
+
+    if (difference.inHours < 24 && messageTime.day == now.day) {
+      return DateFormat('HH:mm').format(messageTime);
+    }
+
+    final DateTime yesterday = now.subtract(Duration(days: 1));
+    if (messageTime.day == yesterday.day &&
+        messageTime.month == yesterday.month &&
+        messageTime.year == yesterday.year) {
+      return 'Yesterday';
+    }
+
+    if (difference.inDays >= 1 && difference.inDays <= 8) {
+      return DateFormat('EEEE').format(messageTime);
+    }
+
+    if (difference.inDays >= 9 && difference.inDays <= 29) {
+      return '${difference.inDays} days ago';
+    }
+
+    return DateFormat('dd/MM/yyyy').format(messageTime);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final lastMessageTime = lastMessageTimestamp != null
-        ? DateFormat("hh:mm").format(lastMessageTimestamp!.toDate())
-        : "";
+    final lastMessageTime = _formatChatTimestamp(lastMessageTimestamp);
 
     return GestureDetector(
       onTap: () {
