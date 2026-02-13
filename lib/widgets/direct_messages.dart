@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_flutter_chat/widgets/message_bubble.dart';
+import 'package:vibration/vibration.dart';
 
 class DirectMessagesWidget extends StatefulWidget {
   DirectMessagesWidget({super.key, required this.chatId});
@@ -14,6 +15,71 @@ class DirectMessagesWidget extends StatefulWidget {
 
 class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
   final _scrollController = ScrollController();
+
+  Future<void> _showMessageMenu({
+    required Offset globalPosition,
+    required String messageId,
+  }) async {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    const horizontalPadding = 8;
+    const estimatedMenuWidth = 180.0;
+    final safeY = globalPosition.dy.clamp(8, overlay.size.height - 8);
+    final safeX = (globalPosition.dx - estimatedMenuWidth).clamp(
+      horizontalPadding,
+      overlay.size.width - horizontalPadding,
+    );
+    final leftAnchoredPoint = Offset(safeX.toDouble(), safeY.toDouble());
+    final position = RelativeRect.fromRect(
+      Rect.fromPoints(leftAnchoredPoint, leftAnchoredPoint),
+      Offset.zero & overlay.size,
+    );
+
+    if (await Vibration.hasVibrator()) {
+      Vibration.vibrate(duration: 100);
+    }
+
+    final selectedAction = await showMenu<String>(
+      shape: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+      surfaceTintColor: Theme.of(context).colorScheme.onSurface,
+      color: Theme.of(context).colorScheme.onSurface,
+      popUpAnimationStyle: AnimationStyle(
+        curve: Curves.bounceOut,
+        duration: const Duration(milliseconds: 0),
+      ),
+      context: context,
+      position: position,
+      items: [
+        PopupMenuItem<String>(
+          value: "delete",
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Delete message",
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.red),
+              ),
+              const SizedBox(width: 10),
+              const Icon(Icons.delete, color: Colors.red),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    if (selectedAction == "delete") {
+      FirebaseFirestore.instance
+          .collection("chats/${widget.chatId}/messages")
+          .doc(messageId)
+          .delete();
+    }
+  }
 
   @override
   void dispose() {
@@ -81,16 +147,23 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
                 ? nextChatMessage["userId"]
                 : null;
 
-            if (currentUserId == nextUserId) {
-              return MessageBubble.next(
-                message: chatMessage["text"],
-                isMe: isMe,
-              );
-            }
+            final messageText = (chatMessage["text"] ?? "").toString();
+            final isNextBySameUser = currentUserId == nextUserId;
 
-            return MessageBubble.first(
-              message: chatMessage["text"],
-              isMe: isMe,
+            final messageId = loadedMessages[index].id;
+
+            final bubble = isNextBySameUser
+                ? MessageBubble.next(message: messageText, isMe: isMe)
+                : MessageBubble.first(message: messageText, isMe: isMe);
+
+            return GestureDetector(
+              onLongPressStart: (details) {
+                _showMessageMenu(
+                  globalPosition: details.globalPosition,
+                  messageId: messageId,
+                );
+              },
+              child: bubble,
             );
           },
           separatorBuilder: (BuildContext context, int index) {
