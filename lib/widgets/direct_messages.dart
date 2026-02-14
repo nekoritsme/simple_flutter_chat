@@ -35,7 +35,7 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
     );
 
     if (await Vibration.hasVibrator()) {
-      Vibration.vibrate(duration: 100);
+      Vibration.vibrate(duration: 50);
     }
 
     final selectedAction = await showMenu<String>(
