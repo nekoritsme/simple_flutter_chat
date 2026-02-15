@@ -29,7 +29,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   final _user = FirebaseAuth.instance.currentUser;
   StreamSubscription<QuerySnapshot>? _messageSubscription;
   EditMode _editMode = EditMode.message;
-  String? _editMessageId = null;
+  String? _editMessageId;
 
   void _updateReadStatus() async {
     try {

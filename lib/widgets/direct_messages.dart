@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:simple_flutter_chat/widgets/message_bubble.dart';
 import 'package:vibration/vibration.dart';
 
@@ -68,22 +69,6 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
       position: position,
       items: [
         PopupMenuItem<String>(
-          value: "delete",
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Delete message",
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.red),
-              ),
-              const SizedBox(width: 10),
-              const Icon(Icons.delete, color: Colors.red),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
           value: "edit",
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -96,6 +81,38 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
               ),
               const SizedBox(width: 10),
               Icon(Icons.edit, color: Theme.of(context).colorScheme.primary),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: "copy",
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Copy message",
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+              ),
+              const SizedBox(width: 10),
+              Icon(Icons.copy, color: Theme.of(context).colorScheme.primary),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: "delete",
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Delete message",
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.red),
+              ),
+              const SizedBox(width: 10),
+              const Icon(Icons.delete, color: Colors.red),
             ],
           ),
         ),
@@ -113,6 +130,10 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
       if (!isMe) return;
 
       widget.editMessage(messageId: messageId, message: message);
+    }
+
+    if (selectedAction == "copy") {
+      await Clipboard.setData(ClipboardData(text: message["text"]));
     }
   }
 
