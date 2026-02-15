@@ -173,7 +173,7 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
     return StreamBuilder(
       stream: _otherUserLastReadStream,
       builder: (context, lastReadSnapshot) {
-        final Timestamp lastReadOtherUserTimestamp = lastReadSnapshot.data;
+        final Timestamp? lastReadOtherUserTimestamp = lastReadSnapshot.data;
 
         return StreamBuilder(
           stream: _messagesStream,
@@ -233,21 +233,23 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
 
                 final messageId = loadedMessages[index].id;
 
-                final createdAt = chatMessage["createdAt"];
+                final Timestamp? createdAt = chatMessage["createdAt"];
                 final isRead =
+                    createdAt != null &&
+                    lastReadOtherUserTimestamp != null &&
                     lastReadOtherUserTimestamp.compareTo(createdAt) >= 0;
 
                 final bubble = isNextBySameUser
                     ? MessageBubble.next(
                         message: messageText,
                         isMe: isMe,
-                        createdAt: createdAt,
+                        createdAt: createdAt ?? Timestamp(0, 0),
                         isRead: isRead,
                       )
                     : MessageBubble.first(
                         message: messageText,
                         isMe: isMe,
-                        createdAt: createdAt,
+                        createdAt: createdAt ?? Timestamp(0, 0),
                         isRead: isRead,
                       );
 
