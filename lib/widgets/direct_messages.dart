@@ -11,7 +11,11 @@ class DirectMessagesWidget extends StatefulWidget {
     required this.editMessage,
   });
 
-  final Function() editMessage;
+  final Function({
+    required String messageId,
+    required Map<String, dynamic> message,
+  })
+  editMessage;
 
   final String chatId;
 
@@ -26,6 +30,8 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
   Future<void> _showMessageMenu({
     required Offset globalPosition,
     required String messageId,
+    required Map<String, dynamic> message,
+    required bool isMe,
   }) async {
     final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
     const horizontalPadding = 8;
@@ -104,8 +110,9 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
     }
 
     if (selectedAction == "edit") {
-      // TODO: CHECK IF IT A MINE MESSAGE, MAYBE not even display if it is not mine
-      widget.editMessage();
+      if (!isMe) return;
+
+      widget.editMessage(messageId: messageId, message: message);
     }
   }
 
@@ -195,6 +202,8 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
                 _showMessageMenu(
                   globalPosition: details.globalPosition,
                   messageId: messageId,
+                  message: chatMessage,
+                  isMe: isMe,
                 );
               },
               child: bubble,

@@ -29,6 +29,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   final _user = FirebaseAuth.instance.currentUser;
   StreamSubscription<QuerySnapshot>? _messageSubscription;
   EditMode _editMode = EditMode.message;
+  String? _editMessageId = null;
 
   void _updateReadStatus() async {
     try {
@@ -62,10 +63,40 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
         });
   }
 
-  void _editMessage() {
+  void _editMessage({
+    required String messageId,
+    required Map<String, dynamic> message,
+  }) {
     setState(() {
       _editMode = EditMode.edit;
+      _editMessageId = messageId;
     });
+
+    _messageController.text = message["text"];
+  }
+
+  void _editMessageConfirm() async {
+    setState(() {
+      _editMode = EditMode.message;
+    });
+
+    if (_editMessageId == null || _messageController.text.isEmpty) return;
+    FocusScope.of(context).unfocus();
+    talker.info("Am i here?");
+    final enteredMessage = _messageController.text;
+    _messageController.clear();
+
+    try {
+      await FirebaseFirestore.instance
+          .collection("chats/${widget.chatId}/messages")
+          .doc(_editMessageId)
+          .update({
+            "text": enteredMessage,
+            "editedAt": FieldValue.serverTimestamp(),
+          });
+    } catch (err, stack) {
+      talker.error(err, stack);
+    }
   }
 
   @override
@@ -225,9 +256,19 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
                           shape: CircleBorder(),
                           backgroundColor: theme.colorScheme.primary,
                           onPressed: () {
-                            _submitMessage();
+                            if (_editMode == EditMode.message) {
+                              return _submitMessage();
+                            }
+                            if (_editMode == EditMode.edit) {
+                              return _editMessageConfirm();
+                            }
                           },
-                          child: Icon(Icons.send, color: Colors.white),
+                          child: Icon(
+                            _editMode == EditMode.message
+                                ? Icons.send
+                                : Icons.check,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
