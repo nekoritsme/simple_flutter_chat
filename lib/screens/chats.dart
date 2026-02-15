@@ -90,6 +90,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
         "createdAt": FieldValue.serverTimestamp(),
         "lastMessage": null,
         "lastMessageTimestamp": null,
+        "lastMessageSenderId": null,
         "lastReadTimestamp": {
           currentUser: FieldValue.serverTimestamp(),
           otherUser: FieldValue.serverTimestamp(),
