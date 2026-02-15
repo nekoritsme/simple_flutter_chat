@@ -134,10 +134,45 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
     );
 
     if (selectedAction == "delete") {
-      FirebaseFirestore.instance
-          .collection("chats/${widget.chatId}/messages")
-          .doc(messageId)
-          .delete();
+      final messagesRef = FirebaseFirestore.instance.collection(
+        "chats/${widget.chatId}/messages",
+      );
+
+      var lastMessageQuery = await messagesRef
+          .orderBy("createdAt", descending: true)
+          .limit(1)
+          .get();
+
+      bool isLastMessage = false;
+      if (lastMessageQuery.docs.isNotEmpty) {
+        isLastMessage = lastMessageQuery.docs.first.id == messageId;
+      }
+
+      await messagesRef.doc(messageId).delete();
+
+      if (isLastMessage) {
+        lastMessageQuery = await messagesRef
+            .orderBy("createdAt", descending: true)
+            .limit(1)
+            .get();
+
+        if (lastMessageQuery.docs.isNotEmpty) {
+          await FirebaseFirestore.instance
+              .collection("chats")
+              .doc(widget.chatId)
+              .update({
+                "lastMessage": lastMessageQuery.docs.first.get("text"),
+                "lastMessageTimestamp": lastMessageQuery.docs.first.get(
+                  "createdAt",
+                ),
+              });
+        } else {
+          await FirebaseFirestore.instance
+              .collection("chats")
+              .doc(widget.chatId)
+              .update({"lastMessage": null, "lastMessageTimestamp": null});
+        }
+      }
     }
 
     if (selectedAction == "edit") {

@@ -144,7 +144,6 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
 
   void _submitMessage() async {
     final enteredMessage = _messageController.text;
-    talker.info(enteredMessage);
     if (enteredMessage.isEmpty) return;
     FocusScope.of(context).unfocus();
 
