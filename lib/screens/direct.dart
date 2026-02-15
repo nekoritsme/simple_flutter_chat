@@ -29,10 +29,26 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   final _user = FirebaseAuth.instance.currentUser;
   StreamSubscription<QuerySnapshot>? _messageSubscription;
   EditMode _editMode = EditMode.message;
+  late List<dynamic> _participants;
+  late String _otherUserId;
   String? _editMessageId;
 
   void _updateReadStatus() async {
     try {
+      _participants =
+          (await FirebaseFirestore.instance
+                  .collection("chats")
+                  .doc(widget.chatId)
+                  .get())
+              .get("participants");
+
+      setState(() {
+        _otherUserId = _participants.firstWhere(
+          (element) => element != _user!.uid,
+        );
+      });
+
+      talker.info("Participants: $_participants, otherUserId: $_otherUserId");
       await FirebaseFirestore.instance
           .collection("chats")
           .doc(widget.chatId)
@@ -301,6 +317,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
             child: DirectMessagesWidget(
               chatId: widget.chatId,
               editMessage: _editMessage,
+              otherUserId: _otherUserId,
             ),
           ),
           const SizedBox(height: 120),

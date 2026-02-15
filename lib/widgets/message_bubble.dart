@@ -7,6 +7,7 @@ class MessageBubble extends StatelessWidget {
     required this.message,
     required this.isMe,
     required this.createdAt,
+    required this.isRead,
   }) : isFirstInSequence = true;
 
   const MessageBubble.next({
@@ -14,12 +15,14 @@ class MessageBubble extends StatelessWidget {
     required this.message,
     required this.isMe,
     required this.createdAt,
+    required this.isRead,
   }) : isFirstInSequence = false;
 
   final bool isFirstInSequence;
   final String message;
   final bool isMe;
   final Timestamp createdAt;
+  final bool isRead;
 
   String _formatMessageTime(Timestamp createdAt) {
     final date = createdAt.toDate();
@@ -113,12 +116,15 @@ class MessageBubble extends StatelessWidget {
                       formatMessageTime,
                       style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
                     ),
-                    if (isMe)
+                    if (isMe) ...[
+                      const SizedBox(width: 5),
                       Icon(
-                        Icons
-                            .done_all, // TODO: change color depending on the read state
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ), // placeholder till done
+                        Icons.done_all,
+                        color: isRead
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ],
                   ],
                 ),
               ),

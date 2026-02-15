@@ -10,6 +10,7 @@ class DirectMessagesWidget extends StatefulWidget {
     super.key,
     required this.chatId,
     required this.editMessage,
+    required this.otherUserId,
   });
 
   final Function({
@@ -19,6 +20,7 @@ class DirectMessagesWidget extends StatefulWidget {
   editMessage;
 
   final String chatId;
+  final String otherUserId;
 
   @override
   State<DirectMessagesWidget> createState() => _DirectMessagesWidgetState();
@@ -27,6 +29,18 @@ class DirectMessagesWidget extends StatefulWidget {
 class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
   final _scrollController = ScrollController();
   late final Stream<QuerySnapshot<Map<String, dynamic>>> _messagesStream;
+
+  Stream<dynamic> get _otherUserLastReadStream {
+    return FirebaseFirestore.instance
+        .collection("chats")
+        .doc(widget.chatId)
+        .snapshots()
+        .map((docSnapshot) {
+          final data = docSnapshot.data();
+          return data?['lastReadTimestamp']?[widget.otherUserId];
+        })
+        .distinct();
+  }
 
   Future<void> _showMessageMenu({
     required Offset globalPosition,
@@ -157,89 +171,102 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
     final authenticatedUser = FirebaseAuth.instance.currentUser;
 
     return StreamBuilder(
-      stream: _messagesStream,
-      builder: (ctx, messagesSnapshots) {
-        if (messagesSnapshots.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+      stream: _otherUserLastReadStream,
+      builder: (context, lastReadSnapshot) {
+        final Timestamp lastReadOtherUserTimestamp = lastReadSnapshot.data;
 
-        if (!messagesSnapshots.hasData ||
-            messagesSnapshots.data!.docs.isEmpty) {
-          return const Center(child: Text("No messages was found"));
-        }
+        return StreamBuilder(
+          stream: _messagesStream,
+          builder: (ctx, messagesSnapshots) {
+            if (messagesSnapshots.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-        if (messagesSnapshots.hasError) {
-          return const Center(child: Text("Something went wrong"));
-        }
+            if (!messagesSnapshots.hasData ||
+                messagesSnapshots.data!.docs.isEmpty) {
+              return const Center(child: Text("No messages was found"));
+            }
 
-        final loadedMessages = messagesSnapshots.data!.docs;
+            if (messagesSnapshots.hasError) {
+              return const Center(child: Text("Something went wrong"));
+            }
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_scrollController.hasClients) {
-            _scrollController.jumpTo(
-              _scrollController.position.maxScrollExtent,
-            );
+            final loadedMessages = messagesSnapshots.data!.docs;
 
-            Future.delayed(const Duration(milliseconds: 300), () {
-              if (_scrollController.hasClients && mounted) {
-                _scrollController.animateTo(
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (_scrollController.hasClients) {
+                _scrollController.jumpTo(
                   _scrollController.position.maxScrollExtent,
-                  duration: Duration(milliseconds: 500),
-                  curve: Curves.easeInOut,
                 );
+
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  if (_scrollController.hasClients && mounted) {
+                    _scrollController.animateTo(
+                      _scrollController.position.maxScrollExtent,
+                      duration: Duration(milliseconds: 500),
+                      curve: Curves.easeInOut,
+                    );
+                  }
+                });
               }
             });
-          }
-        });
 
-        return ListView.separated(
-          itemCount: loadedMessages.length,
-          reverse: false,
-          controller: _scrollController,
-          itemBuilder: (contx, index) {
-            final chatMessage = loadedMessages[index].data();
-            final nextChatMessage = index + 1 < loadedMessages.length
-                ? loadedMessages[index + 1].data()
-                : null;
+            return ListView.separated(
+              itemCount: loadedMessages.length,
+              reverse: false,
+              controller: _scrollController,
+              itemBuilder: (contx, index) {
+                final chatMessage = loadedMessages[index].data();
+                final nextChatMessage = index + 1 < loadedMessages.length
+                    ? loadedMessages[index + 1].data()
+                    : null;
 
-            final isMe = chatMessage["userId"] == authenticatedUser!.uid;
+                final isMe = chatMessage["userId"] == authenticatedUser!.uid;
 
-            final currentUserId = chatMessage["userId"];
-            final nextUserId = nextChatMessage != null
-                ? nextChatMessage["userId"]
-                : null;
+                final currentUserId = chatMessage["userId"];
+                final nextUserId = nextChatMessage != null
+                    ? nextChatMessage["userId"]
+                    : null;
 
-            final messageText = (chatMessage["text"] ?? "").toString();
-            final isNextBySameUser = currentUserId == nextUserId;
+                final messageText = (chatMessage["text"] ?? "").toString();
+                final isNextBySameUser = currentUserId == nextUserId;
 
-            final messageId = loadedMessages[index].id;
+                final messageId = loadedMessages[index].id;
 
-            final bubble = isNextBySameUser
-                ? MessageBubble.next(
-                    message: messageText,
-                    isMe: isMe,
-                    createdAt: chatMessage["createdAt"],
-                  )
-                : MessageBubble.first(
-                    message: messageText,
-                    isMe: isMe,
-                    createdAt: chatMessage["createdAt"],
-                  );
+                final createdAt = chatMessage["createdAt"];
+                final isRead =
+                    lastReadOtherUserTimestamp.compareTo(createdAt) >= 0;
 
-            return GestureDetector(
-              onLongPressStart: (details) {
-                _showMessageMenu(
-                  globalPosition: details.globalPosition,
-                  messageId: messageId,
-                  message: chatMessage,
-                  isMe: isMe,
+                final bubble = isNextBySameUser
+                    ? MessageBubble.next(
+                        message: messageText,
+                        isMe: isMe,
+                        createdAt: createdAt,
+                        isRead: isRead,
+                      )
+                    : MessageBubble.first(
+                        message: messageText,
+                        isMe: isMe,
+                        createdAt: createdAt,
+                        isRead: isRead,
+                      );
+
+                return GestureDetector(
+                  onLongPressStart: (details) {
+                    _showMessageMenu(
+                      globalPosition: details.globalPosition,
+                      messageId: messageId,
+                      message: chatMessage,
+                      isMe: isMe,
+                    );
+                  },
+                  child: bubble,
                 );
               },
-              child: bubble,
+              separatorBuilder: (BuildContext context, int index) {
+                return SizedBox(height: 10);
+              },
             );
-          },
-          separatorBuilder: (BuildContext context, int index) {
-            return SizedBox(height: 10);
           },
         );
       },
