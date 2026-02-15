@@ -5,7 +5,13 @@ import 'package:simple_flutter_chat/widgets/message_bubble.dart';
 import 'package:vibration/vibration.dart';
 
 class DirectMessagesWidget extends StatefulWidget {
-  DirectMessagesWidget({super.key, required this.chatId});
+  const DirectMessagesWidget({
+    super.key,
+    required this.chatId,
+    required this.editMessage,
+  });
+
+  final Function() editMessage;
 
   final String chatId;
 
@@ -15,6 +21,7 @@ class DirectMessagesWidget extends StatefulWidget {
 
 class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
   final _scrollController = ScrollController();
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _messagesStream;
 
   Future<void> _showMessageMenu({
     required Offset globalPosition,
@@ -70,6 +77,22 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
             ],
           ),
         ),
+        PopupMenuItem<String>(
+          value: "edit",
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Edit message",
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+              ),
+              const SizedBox(width: 10),
+              Icon(Icons.edit, color: Theme.of(context).colorScheme.primary),
+            ],
+          ),
+        ),
       ],
     );
 
@@ -79,6 +102,20 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
           .doc(messageId)
           .delete();
     }
+
+    if (selectedAction == "edit") {
+      // TODO: CHECK IF IT A MINE MESSAGE, MAYBE not even display if it is not mine
+      widget.editMessage();
+    }
+  }
+
+  @override
+  void initState() {
+    _messagesStream = FirebaseFirestore.instance
+        .collection("chats/${widget.chatId}/messages")
+        .orderBy("createdAt", descending: false)
+        .snapshots();
+    super.initState();
   }
 
   @override
@@ -92,10 +129,7 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
     final authenticatedUser = FirebaseAuth.instance.currentUser;
 
     return StreamBuilder(
-      stream: FirebaseFirestore.instance
-          .collection("chats/${widget.chatId}/messages")
-          .orderBy("createdAt", descending: false)
-          .snapshots(),
+      stream: _messagesStream,
       builder: (ctx, messagesSnapshots) {
         if (messagesSnapshots.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());

@@ -41,6 +41,7 @@ class ChatApp extends StatelessWidget {
           onSecondary: Color.fromARGB(51, 19, 164, 236),
           onSurface: Color.fromARGB(255, 16, 28, 34),
           onSurfaceVariant: Color.fromARGB(255, 30, 41, 59),
+          onTertiary: Color.fromARGB(255, 15, 23, 42),
         ),
         textTheme: TextTheme(
           titleLarge: GoogleFonts.plusJakartaSans(

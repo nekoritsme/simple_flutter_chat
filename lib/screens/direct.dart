@@ -6,15 +6,17 @@ import 'package:flutter/material.dart';
 import 'package:simple_flutter_chat/widgets/direct_messages.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
+enum EditMode { message, edit }
+
 class DirectMessagesScreen extends StatefulWidget {
-  DirectMessagesScreen({
+  const DirectMessagesScreen({
     super.key,
     required this.chatId,
     required this.chatNickname,
   });
 
-  final chatId;
-  final chatNickname;
+  final String chatId;
+  final String chatNickname;
 
   @override
   State<DirectMessagesScreen> createState() => _DirectMessagesScreenState();
@@ -26,6 +28,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   final talker = Talker();
   final _user = FirebaseAuth.instance.currentUser;
   StreamSubscription<QuerySnapshot>? _messageSubscription;
+  EditMode _editMode = EditMode.message;
 
   void _updateReadStatus() async {
     try {
@@ -57,6 +60,12 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
             }
           }
         });
+  }
+
+  void _editMessage() {
+    setState(() {
+      _editMode = EditMode.edit;
+    });
   }
 
   @override
@@ -130,56 +139,102 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
         onClosing: () {},
         builder: (ctx) => SizedBox(
           width: double.infinity,
-          height: 120,
-          child: Container(
-            color: theme.colorScheme.onSurface,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 16),
-                    child: TextField(
-                      controller: _messageController,
-                      style: theme.textTheme.bodyMedium,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: theme.colorScheme.primary.withAlpha(80),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        hintText: "Type a message",
-                        hintStyle: TextStyle(color: theme.colorScheme.primary),
-                      ),
-                      onChanged: (value) {},
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 15),
+          height: _editMode == EditMode.message ? 120 : 170,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (_editMode == EditMode.edit)
                 Container(
-                  padding: const EdgeInsets.only(right: 16),
-                  decoration: BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.colorScheme.onPrimary.withAlpha(100),
-                        offset: Offset(-8, 0),
-                        blurRadius: 30,
-                        spreadRadius: -8,
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  height: 50,
+                  color: theme.colorScheme.onTertiary.withAlpha(240),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.edit, color: theme.colorScheme.primary),
+                          const SizedBox(width: 5),
+                          Text(
+                            "EDITING MESSAGE",
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _editMode = EditMode.message;
+                          });
+                        },
+                        icon: Icon(
+                          Icons.close_rounded,
+                          color: theme.textTheme.bodyMedium!.color,
+                        ),
                       ),
                     ],
                   ),
-                  child: FloatingActionButton(
-                    shape: CircleBorder(),
-                    backgroundColor: theme.colorScheme.primary,
-                    onPressed: () {
-                      _submitMessage();
-                    },
-                    child: Icon(Icons.send, color: Colors.white),
+                ),
+              Expanded(
+                child: Container(
+                  color: theme.colorScheme.onSurface,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 16),
+                          child: TextField(
+                            controller: _messageController,
+                            style: theme.textTheme.bodyMedium,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: theme.colorScheme.primary.withAlpha(
+                                80,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              hintText: "Type a message",
+                              hintStyle: TextStyle(
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                            onChanged: (value) {},
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 15),
+                      Container(
+                        padding: const EdgeInsets.only(right: 16),
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.colorScheme.onPrimary.withAlpha(100),
+                              offset: Offset(-8, 0),
+                              blurRadius: 30,
+                              spreadRadius: -8,
+                            ),
+                          ],
+                        ),
+                        child: FloatingActionButton(
+                          shape: CircleBorder(),
+                          backgroundColor: theme.colorScheme.primary,
+                          onPressed: () {
+                            _submitMessage();
+                          },
+                          child: Icon(Icons.send, color: Colors.white),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -201,7 +256,12 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
       ),
       body: Column(
         children: [
-          Expanded(child: DirectMessagesWidget(chatId: widget.chatId)),
+          Expanded(
+            child: DirectMessagesWidget(
+              chatId: widget.chatId,
+              editMessage: _editMessage,
+            ),
+          ),
           const SizedBox(height: 120),
         ],
       ),
