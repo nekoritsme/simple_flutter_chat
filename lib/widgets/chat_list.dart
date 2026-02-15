@@ -4,12 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:simple_flutter_chat/widgets/chat_item.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
-class ChatListWidget extends StatelessWidget {
+class ChatListWidget extends StatefulWidget {
   ChatListWidget({super.key, required this.searchQuery});
 
-  final user = FirebaseAuth.instance.currentUser;
-  final talker = Talker();
   final String searchQuery;
+
+  @override
+  State<ChatListWidget> createState() => _ChatListWidgetState();
+}
+
+class _ChatListWidgetState extends State<ChatListWidget> {
+  final user = FirebaseAuth.instance.currentUser;
+
+  final talker = Talker();
+
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _chatsStream;
 
   Stream<int> _getUnreadCount(String chatId, String userId) {
     return FirebaseFirestore.instance
@@ -41,13 +50,19 @@ class ChatListWidget extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    _chatsStream = FirebaseFirestore.instance
+        .collection("chats")
+        .where("participants", arrayContains: user!.uid)
+        .orderBy("lastMessageTimestamp", descending: true)
+        .snapshots();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-      stream: FirebaseFirestore.instance
-          .collection("chats")
-          .where("participants", arrayContains: user!.uid)
-          .orderBy("lastMessageTimestamp", descending: true)
-          .snapshots(),
+      stream: _chatsStream,
       builder: (ctx, chatSnapshots) {
         if (chatSnapshots.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -138,8 +153,8 @@ class ChatListWidget extends StatelessWidget {
 
                 time == null ? time = null : time.toDate().toString();
 
-                if (searchQuery.isNotEmpty &&
-                    !nickname.toLowerCase().contains(searchQuery)) {
+                if (widget.searchQuery.isNotEmpty &&
+                    !nickname.toLowerCase().contains(widget.searchQuery)) {
                   return SizedBox.shrink();
                 }
 
