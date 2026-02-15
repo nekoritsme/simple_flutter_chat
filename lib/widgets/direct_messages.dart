@@ -239,18 +239,22 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
                     lastReadOtherUserTimestamp != null &&
                     lastReadOtherUserTimestamp.compareTo(createdAt) >= 0;
 
+                final isEdited = chatMessage["editedAt"] != null;
+
                 final bubble = isNextBySameUser
                     ? MessageBubble.next(
                         message: messageText,
                         isMe: isMe,
                         createdAt: createdAt ?? Timestamp(0, 0),
                         isRead: isRead,
+                        isEdited: isEdited,
                       )
                     : MessageBubble.first(
                         message: messageText,
                         isMe: isMe,
                         createdAt: createdAt ?? Timestamp(0, 0),
                         isRead: isRead,
+                        isEdited: isEdited,
                       );
 
                 return GestureDetector(

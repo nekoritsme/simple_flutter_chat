@@ -8,6 +8,7 @@ class MessageBubble extends StatelessWidget {
     required this.isMe,
     required this.createdAt,
     required this.isRead,
+    this.isEdited,
   }) : isFirstInSequence = true;
 
   const MessageBubble.next({
@@ -16,6 +17,7 @@ class MessageBubble extends StatelessWidget {
     required this.isMe,
     required this.createdAt,
     required this.isRead,
+    this.isEdited,
   }) : isFirstInSequence = false;
 
   final bool isFirstInSequence;
@@ -23,6 +25,7 @@ class MessageBubble extends StatelessWidget {
   final bool isMe;
   final Timestamp createdAt;
   final bool isRead;
+  final bool? isEdited;
 
   String _formatMessageTime(Timestamp createdAt) {
     final date = createdAt.toDate();
@@ -112,6 +115,16 @@ class MessageBubble extends StatelessWidget {
                       : MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    if (isEdited != null && isEdited! && isMe) ...[
+                      Text(
+                        "Edited",
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                    ],
                     Text(
                       formatMessageTime,
                       style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
@@ -123,6 +136,16 @@ class MessageBubble extends StatelessWidget {
                         color: isRead
                             ? theme.colorScheme.primary
                             : theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                    if (isEdited != null && isEdited! && !isMe) ...[
+                      const SizedBox(width: 5),
+                      Text(
+                        "Edited",
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ],
