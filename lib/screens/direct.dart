@@ -30,7 +30,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   StreamSubscription<QuerySnapshot>? _messageSubscription;
   EditMode _editMode = EditMode.message;
   late List<dynamic> _participants;
-  late String _otherUserId;
+  String? _otherUserId;
   String? _editMessageId;
 
   void _updateReadStatus() async {
@@ -317,7 +317,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
             child: DirectMessagesWidget(
               chatId: widget.chatId,
               editMessage: _editMessage,
-              otherUserId: _otherUserId,
+              otherUserId: _otherUserId ?? "",
             ),
           ),
           const SizedBox(height: 120),
