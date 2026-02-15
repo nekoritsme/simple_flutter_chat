@@ -215,8 +215,16 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
             final messageId = loadedMessages[index].id;
 
             final bubble = isNextBySameUser
-                ? MessageBubble.next(message: messageText, isMe: isMe)
-                : MessageBubble.first(message: messageText, isMe: isMe);
+                ? MessageBubble.next(
+                    message: messageText,
+                    isMe: isMe,
+                    createdAt: chatMessage["createdAt"],
+                  )
+                : MessageBubble.first(
+                    message: messageText,
+                    isMe: isMe,
+                    createdAt: chatMessage["createdAt"],
+                  );
 
             return GestureDetector(
               onLongPressStart: (details) {
