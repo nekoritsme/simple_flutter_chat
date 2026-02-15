@@ -12,6 +12,8 @@ class ChatItemWidget extends StatelessWidget {
     required this.lastMessageTimestamp,
     required this.unreadCount,
     required this.chatId,
+    this.isMe,
+    this.isRead,
   });
 
   final String chatNickname;
@@ -19,6 +21,8 @@ class ChatItemWidget extends StatelessWidget {
   final Timestamp? lastMessageTimestamp;
   final int unreadCount;
   final String chatId;
+  final bool? isRead;
+  final bool? isMe;
 
   String _formatChatTimestamp(Timestamp? timestamp) {
     if (timestamp == null) return "";
@@ -131,8 +135,15 @@ class ChatItemWidget extends StatelessWidget {
                   ),
                 ),
               ),
-            if (unreadCount == 0 && lastMessageTimestamp != null)
-              Icon(Icons.done_all, color: theme.colorScheme.primary),
+            if (unreadCount == 0 &&
+                lastMessageTimestamp != null &&
+                (isMe ?? false))
+              Icon(
+                Icons.done_all,
+                color: isRead != null && isRead!
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
           ],
         ),
         leading: CircleAvatar(

@@ -124,7 +124,17 @@ class ChatListWidget extends StatelessWidget {
                 final userData = snapshot.data!.data() as Map<String, dynamic>;
                 final nickname = userData["nickname"] ?? "Unknown";
 
-                var time = loadedChats[index]["lastMessageTimestamp"];
+                Timestamp? time = loadedChats[index]["lastMessageTimestamp"];
+                final lastReadOtherUserTimestamp =
+                    loadedChats[index]["lastReadTimestamp"][otherUser];
+
+                final isRead =
+                    time != null &&
+                    lastReadOtherUserTimestamp != null &&
+                    lastReadOtherUserTimestamp.compareTo(time) >= 0;
+
+                final isMe =
+                    loadedChats[index]["lastMessageSenderId"] == user!.uid;
 
                 time == null ? time = null : time.toDate().toString();
 
@@ -146,6 +156,8 @@ class ChatListWidget extends StatelessWidget {
                       lastMessageTimestamp: time,
                       unreadCount: unreadCount,
                       chatId: loadedChats[index].id,
+                      isRead: isRead,
+                      isMe: isMe,
                     );
                   },
                 );

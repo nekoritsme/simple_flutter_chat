@@ -167,6 +167,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
         .update({
           "lastMessageTimestamp": FieldValue.serverTimestamp(),
           "lastMessage": enteredMessage,
+          "lastMessageSenderId": _user.uid,
         });
 
     _messageController.clear();
