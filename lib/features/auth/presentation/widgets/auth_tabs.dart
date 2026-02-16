@@ -19,7 +19,6 @@ class _AuthTabsWidgetState extends State<AuthTabsWidget>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   bool _isPasswordVisible = false;
-  bool _isLogin = true;
 
   final _loginFormKey = GlobalKey<FormState>();
   final _signUpFormKey = GlobalKey<FormState>();

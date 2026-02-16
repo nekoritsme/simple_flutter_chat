@@ -1,11 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dart_either/dart_either.dart';
 import 'package:flutter/material.dart';
-import 'package:talker_flutter/talker_flutter.dart';
+import 'package:simple_flutter_chat/features/auth/domain/usecases/LoginUseCase.dart';
+import 'package:simple_flutter_chat/features/auth/domain/usecases/SignUpUseCase.dart';
 
 import '../widgets/auth_tabs.dart';
-
-final _firebase = FirebaseAuth.instance;
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -15,8 +13,6 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  final talker = Talker();
-
   void _scaffoldMessage(String? msg) {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(
@@ -26,36 +22,21 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _handleLogin(String email, String password) async {
     try {
-      final userCredentials = await _firebase.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      talker.info("User credentials logined: $userCredentials");
-    } on FirebaseAuthException catch (err) {
-      _scaffoldMessage(err.message);
+      LoginUseCase().handleLogin(email: email, password: password);
+    } on Left catch (err) {
+      _scaffoldMessage(err.value);
     }
   }
 
   void _handleSignup(String nickname, String email, String password) async {
     try {
-      final userCredentials = await _firebase.createUserWithEmailAndPassword(
+      SignUpUseCase().handleSignUp(
         email: email,
         password: password,
+        nickname: nickname,
       );
-
-      talker.info("User credentials registred: $userCredentials");
-
-      await FirebaseFirestore.instance
-          .collection("users")
-          .doc(userCredentials.user!.uid)
-          .set({
-            "nickname": nickname,
-            "email": email,
-            "createdAt": Timestamp.now(),
-          });
-    } on FirebaseAuthException catch (err) {
-      _scaffoldMessage(err.message);
+    } on Left catch (err) {
+      _scaffoldMessage(err.value);
     }
   }
 

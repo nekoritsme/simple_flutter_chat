@@ -2,14 +2,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:simple_flutter_chat/features/auth/presentation/pages/auth_page.dart';
 import 'package:simple_flutter_chat/firebase_options.dart';
-import 'package:simple_flutter_chat/screens/auth.dart';
 import 'package:simple_flutter_chat/screens/chats.dart';
 import 'package:simple_flutter_chat/screens/splash.dart';
+import 'package:simple_flutter_chat/service_locator.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
-void main() {
+void main() async {
   final talker = Talker();
+
+  await initializeSingletons();
 
   runTalkerZonedGuarded(
     talker,
@@ -27,6 +30,7 @@ void main() {
   );
 }
 
+// TODO: Make it clear to clean architecture restrictions
 class ChatApp extends StatelessWidget {
   const ChatApp({super.key});
 

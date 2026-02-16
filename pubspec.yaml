@@ -44,6 +44,8 @@ dependencies:
   flutter_launcher_icons: ^0.14.4
   link_text: ^0.2.1
   url_launcher: ^6.3.2
+  dart_either: ^2.0.0
+  get_it: ^9.2.0
 
 dev_dependencies:
   flutter_test:
