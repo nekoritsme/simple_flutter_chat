@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:link_text/link_text.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MessageBubble extends StatelessWidget {
   const MessageBubble.first({
@@ -95,13 +97,17 @@ class MessageBubble extends StatelessWidget {
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     child: Container(
                       padding: EdgeInsets.all(20),
-                      child: Text(
+                      child: LinkText(
                         message,
-                        style: theme.textTheme.bodyMedium?.copyWith(
+                        textStyle: theme.textTheme.bodyMedium?.copyWith(
                           color: Colors.white,
                         ),
-                        softWrap: true,
-                        maxLines: null,
+                        linkStyle: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.blue,
+                        ),
+                        onLinkTap: (url) {
+                          launchUrl(Uri.parse(url));
+                        },
                       ),
                     ),
                   ),
