@@ -137,7 +137,8 @@ class ChatItemWidget extends StatelessWidget {
               ),
             if (unreadCount == 0 &&
                 lastMessageTimestamp != null &&
-                !(isMe ?? false))
+                isMe != null &&
+                isMe!)
               Icon(
                 Icons.done_all,
                 color: isRead != null && isRead!

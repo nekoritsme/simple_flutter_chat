@@ -98,11 +98,24 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
 
     if (_editMessageId == null || _messageController.text.isEmpty) return;
     FocusScope.of(context).unfocus();
-    talker.info("Am i here?");
     final enteredMessage = _messageController.text;
     _messageController.clear();
 
     try {
+      final messagesRef = FirebaseFirestore.instance.collection(
+        "chats/${widget.chatId}/messages",
+      );
+
+      var lastMessageQuery = await messagesRef
+          .orderBy("createdAt", descending: true)
+          .limit(1)
+          .get();
+
+      bool isLastMessage = false;
+      if (lastMessageQuery.docs.isNotEmpty) {
+        isLastMessage = lastMessageQuery.docs.first.id == _editMessageId;
+      }
+
       await FirebaseFirestore.instance
           .collection("chats/${widget.chatId}/messages")
           .doc(_editMessageId)
@@ -110,6 +123,30 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
             "text": enteredMessage,
             "editedAt": FieldValue.serverTimestamp(),
           });
+
+      if (isLastMessage) {
+        lastMessageQuery = await messagesRef
+            .orderBy("createdAt", descending: true)
+            .limit(1)
+            .get();
+
+        if (lastMessageQuery.docs.isNotEmpty) {
+          await FirebaseFirestore.instance
+              .collection("chats")
+              .doc(widget.chatId)
+              .update({
+                "lastMessage": lastMessageQuery.docs.first.get("text"),
+                "lastMessageTimestamp": lastMessageQuery.docs.first.get(
+                  "createdAt",
+                ),
+              });
+        } else {
+          await FirebaseFirestore.instance
+              .collection("chats")
+              .doc(widget.chatId)
+              .update({"lastMessage": null, "lastMessageTimestamp": null});
+        }
+      }
     } catch (err, stack) {
       talker.error(err, stack);
     }
