@@ -6,7 +6,14 @@ import 'package:simple_flutter_chat/core/logger.dart';
 import '../../domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  final _firebase = FirebaseAuth.instance;
+  final FirebaseAuth _firebaseAuth;
+  final FirebaseFirestore _firebaseFirestore;
+
+  AuthRepositoryImpl({
+    required FirebaseAuth firebaseAuth,
+    required FirebaseFirestore firebaseFirestore,
+  }) : _firebaseAuth = firebaseAuth,
+       _firebaseFirestore = firebaseFirestore;
 
   @override
   Future<Either> handleLogin({
@@ -14,7 +21,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     try {
-      final userCredentials = await _firebase.signInWithEmailAndPassword(
+      final userCredentials = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -34,12 +41,10 @@ class AuthRepositoryImpl implements AuthRepository {
     required String nickname,
   }) async {
     try {
-      final userCredentials = await _firebase.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      final userCredentials = await _firebaseAuth
+          .createUserWithEmailAndPassword(email: email, password: password);
 
-      await FirebaseFirestore.instance
+      await _firebaseFirestore
           .collection("users")
           .doc(userCredentials.user!.uid)
           .set({

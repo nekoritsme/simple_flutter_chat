@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,6 +7,8 @@ import 'package:simple_flutter_chat/screens/chats.dart';
 import 'package:simple_flutter_chat/screens/splash.dart';
 import 'package:simple_flutter_chat/service_locator.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+
+import 'core/sources/firebase_sources.dart';
 
 void main() async {
   final talker = Talker();
@@ -61,7 +62,7 @@ class ChatApp extends StatelessWidget {
         ),
       ),
       home: StreamBuilder(
-        stream: FirebaseAuth.instance.authStateChanges(),
+        stream: sl<FirebaseAuthSource>().instance.authStateChanges(),
         builder: (ctx, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return SplashScreen();
