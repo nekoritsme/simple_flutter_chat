@@ -60,4 +60,9 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left("Sign up failure, try again later.");
     }
   }
+
+  @override
+  void handleLogout() {
+    _firebaseAuth.signOut();
+  }
 }

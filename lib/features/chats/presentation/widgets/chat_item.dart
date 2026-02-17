@@ -1,8 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../screens/direct.dart';
+import '../../../../screens/direct.dart';
 
 class ChatItemWidget extends StatelessWidget {
   const ChatItemWidget({
@@ -18,16 +17,16 @@ class ChatItemWidget extends StatelessWidget {
 
   final String chatNickname;
   final String? lastMessage;
-  final Timestamp? lastMessageTimestamp;
+  final DateTime? lastMessageTimestamp;
   final int unreadCount;
   final String chatId;
   final bool? isRead;
   final bool? isMe;
 
-  String _formatChatTimestamp(Timestamp? timestamp) {
+  String _formatChatTimestamp(DateTime? timestamp) {
     if (timestamp == null) return "";
 
-    final DateTime messageTime = timestamp.toDate();
+    final DateTime messageTime = timestamp;
     final DateTime now = DateTime.now();
     final Duration difference = now.difference(messageTime);
 

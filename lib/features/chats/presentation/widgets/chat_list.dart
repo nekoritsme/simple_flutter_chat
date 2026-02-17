@@ -1,11 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:simple_flutter_chat/widgets/chat_item.dart';
-import 'package:talker_flutter/talker_flutter.dart';
+import 'package:simple_flutter_chat/features/chats/domain/usecases/get_chats_streams_usecase.dart';
+import 'package:simple_flutter_chat/features/chats/domain/usecases/get_current_user_usecase.dart';
+import 'package:simple_flutter_chat/features/chats/domain/usecases/get_specific_user_stream_usecase.dart';
+import 'package:simple_flutter_chat/features/chats/presentation/widgets/chat_item.dart';
+
+import '../../domain/entities/chat.dart';
+import '../../domain/usecases/get_unread_count_stream_usecase.dart';
 
 class ChatListWidget extends StatefulWidget {
-  ChatListWidget({super.key, required this.searchQuery});
+  const ChatListWidget({super.key, required this.searchQuery});
 
   final String searchQuery;
 
@@ -14,48 +17,15 @@ class ChatListWidget extends StatefulWidget {
 }
 
 class _ChatListWidgetState extends State<ChatListWidget> {
-  final user = FirebaseAuth.instance.currentUser;
-
-  final talker = Talker();
-
-  late final Stream<QuerySnapshot<Map<String, dynamic>>> _chatsStream;
+  late final Stream<List<Chat>> _chatsStream;
 
   Stream<int> _getUnreadCount(String chatId, String userId) {
-    return FirebaseFirestore.instance
-        .collection('chats')
-        .doc(chatId)
-        .snapshots()
-        .asyncMap((chatDoc) async {
-          final lastRead =
-              chatDoc.data()?['lastReadTimestamp'][userId] as Timestamp?;
-
-          if (lastRead == null) {
-            final allMessages = await FirebaseFirestore.instance
-                .collection('chats/$chatId/messages')
-                .where('userId', isNotEqualTo: userId)
-                .count()
-                .get();
-            return allMessages.count ?? 0;
-          }
-
-          final unreadMessages = await FirebaseFirestore.instance
-              .collection('chats/$chatId/messages')
-              .where('userId', isNotEqualTo: userId)
-              .where('createdAt', isGreaterThan: lastRead)
-              .count()
-              .get();
-
-          return unreadMessages.count ?? 0;
-        });
+    return GetUnreadCountStreamUseCase().getUnreadCountStream(chatId, userId);
   }
 
   @override
   void initState() {
-    _chatsStream = FirebaseFirestore.instance
-        .collection("chats")
-        .where("participants", arrayContains: user!.uid)
-        .orderBy("lastMessageTimestamp", descending: true)
-        .snapshots();
+    _chatsStream = GetChatsStreamsUseCase().getChatsStream();
     super.initState();
   }
 
@@ -68,7 +38,7 @@ class _ChatListWidgetState extends State<ChatListWidget> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (!chatSnapshots.hasData || chatSnapshots.data!.docs.isEmpty) {
+        if (!chatSnapshots.hasData || chatSnapshots.data!.isEmpty) {
           return const Center(child: Text("No chats found"));
         }
 
@@ -76,16 +46,16 @@ class _ChatListWidgetState extends State<ChatListWidget> {
           return const Center(child: Text("Something went wrong"));
         }
 
-        final loadedChats = chatSnapshots.data!.docs;
+        final loadedChats = chatSnapshots.data!;
 
         return ListView.builder(
           itemCount: loadedChats.length,
           itemBuilder: (ctx, index) {
             final participants = List<String>.from(
-              loadedChats[index]['participants'] ?? const [],
+              loadedChats[index].participants,
             );
             final otherUser = participants.firstWhere(
-              (id) => id != user!.uid,
+              (id) => id != GetCurrentUserUseCase().getUser().id,
               orElse: () => '',
             );
 
@@ -93,7 +63,7 @@ class _ChatListWidgetState extends State<ChatListWidget> {
               return ChatItemWidget(
                 chatNickname: "Invalid chat",
                 lastMessage: "",
-                lastMessageTimestamp: Timestamp(0, 0),
+                lastMessageTimestamp: DateTime(0),
                 unreadCount: 0,
                 chatId: loadedChats[index].id,
               );
@@ -101,16 +71,15 @@ class _ChatListWidgetState extends State<ChatListWidget> {
 
             return StreamBuilder(
               key: ValueKey(loadedChats[index].id),
-              stream: FirebaseFirestore.instance
-                  .collection("users")
-                  .doc(otherUser)
-                  .snapshots(),
+              stream: GetSpecificUserStreamUseCase().getSpecificUserStream(
+                otherUser,
+              ),
               builder: (contx, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return ChatItemWidget(
                     chatNickname: "Loading...",
                     lastMessage: "",
-                    lastMessageTimestamp: Timestamp(0, 0),
+                    lastMessageTimestamp: DateTime(0),
                     unreadCount: 0,
                     chatId: "wait",
                   );
@@ -120,54 +89,54 @@ class _ChatListWidgetState extends State<ChatListWidget> {
                   return ChatItemWidget(
                     chatNickname: "Error loading user",
                     lastMessage: "",
-                    lastMessageTimestamp: Timestamp(0, 0),
+                    lastMessageTimestamp: DateTime(0),
                     unreadCount: 0,
                     chatId: "error",
                   );
                 }
 
-                if (!snapshot.hasData || !snapshot.data!.exists) {
+                if (!snapshot.hasData || snapshot.data == null) {
                   return ChatItemWidget(
                     chatNickname: "User not found",
                     lastMessage: "",
-                    lastMessageTimestamp: Timestamp(0, 0),
+                    lastMessageTimestamp: DateTime(0),
                     unreadCount: 0,
                     chatId: "not found",
                   );
                 }
 
-                final userData = snapshot.data!.data() as Map<String, dynamic>;
-                final nickname = userData["nickname"] ?? "Unknown";
+                final userData = snapshot.data!;
+                final nickname = userData.nickname ?? "Unknown";
 
-                Timestamp? time = loadedChats[index]["lastMessageTimestamp"];
+                DateTime? time = loadedChats[index].lastMessageTimestamp;
                 final lastReadOtherUserTimestamp =
-                    loadedChats[index]["lastReadTimestamp"][otherUser];
+                    loadedChats[index].lastReadTimestamp[otherUser];
 
                 final isRead =
                     time != null &&
                     lastReadOtherUserTimestamp != null &&
-                    lastReadOtherUserTimestamp.compareTo(time) >= 0;
+                    lastReadOtherUserTimestamp.isAfter(time);
 
                 final isMe =
-                    loadedChats[index]["lastMessageSenderId"] == user!.uid;
-
-                time == null ? time = null : time.toDate().toString();
+                    loadedChats[index].lastMessageSenderId ==
+                    GetCurrentUserUseCase().getUser().id;
 
                 if (widget.searchQuery.isNotEmpty &&
                     !nickname.toLowerCase().contains(widget.searchQuery)) {
-                  return SizedBox.shrink();
+                  return const SizedBox.shrink();
                 }
 
                 return StreamBuilder(
-                  stream: _getUnreadCount(loadedChats[index].id, user!.uid),
+                  stream: _getUnreadCount(
+                    loadedChats[index].id,
+                    GetCurrentUserUseCase().getUser().id,
+                  ),
                   builder: (context, unreadSnapshot) {
                     final unreadCount = unreadSnapshot.data ?? 0;
 
-                    talker.info("Unread counter: $unreadCount");
-
                     return ChatItemWidget(
                       chatNickname: nickname,
-                      lastMessage: loadedChats[index]["lastMessage"],
+                      lastMessage: loadedChats[index].lastMessage,
                       lastMessageTimestamp: time,
                       unreadCount: unreadCount,
                       chatId: loadedChats[index].id,

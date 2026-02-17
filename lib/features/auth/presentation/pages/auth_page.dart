@@ -1,7 +1,7 @@
 import 'package:dart_either/dart_either.dart';
 import 'package:flutter/material.dart';
-import 'package:simple_flutter_chat/features/auth/domain/usecases/LoginUseCase.dart';
-import 'package:simple_flutter_chat/features/auth/domain/usecases/SignUpUseCase.dart';
+import 'package:simple_flutter_chat/features/auth/domain/usecases/login_usecase.dart';
+import 'package:simple_flutter_chat/features/auth/domain/usecases/singup_usecase.dart';
 
 import '../widgets/auth_tabs.dart';
 

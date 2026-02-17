@@ -1,7 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dart_either/dart_either.dart';
 import 'package:flutter/material.dart';
-import 'package:talker_flutter/talker_flutter.dart';
+import 'package:simple_flutter_chat/features/chats/domain/usecases/add_chat_usecase.dart';
+import 'package:simple_flutter_chat/features/chats/domain/usecases/get_nickname_usecase.dart';
+import 'package:simple_flutter_chat/features/chats/domain/usecases/sign_out_usecase.dart';
 
 import '../widgets/add_chat.dart';
 import '../widgets/chat_list.dart';
@@ -14,7 +15,6 @@ class ChatsScreen extends StatefulWidget {
 }
 
 class _ChatsScreenState extends State<ChatsScreen> {
-  final talker = Talker();
   String _userNickname = "Loading...";
   final _searchController = TextEditingController();
   String _searchQuery = "";
@@ -24,17 +24,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
-  Future<String> _getNickname() async {
-    final user = FirebaseAuth.instance.currentUser;
-
-    final currentUserNickname = await FirebaseFirestore.instance
-        .collection("users")
-        .doc(user!.uid)
-        .get();
-
-    return currentUserNickname["nickname"];
-  }
-
   @override
   void initState() {
     _searchController.addListener(() {
@@ -42,7 +31,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
         _searchQuery = _searchController.text.trim().toLowerCase();
       });
     });
-    _getNickname().then((nickname) {
+
+    GetNicknameUseCase().getNickname().then((nickname) {
       setState(() {
         _userNickname = nickname;
       });
@@ -57,49 +47,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
   }
 
   void _onAddChat(String nickname) async {
-    final trimmedNickname = nickname.trim();
-
-    String generateChatId(String userId1, String userId2) {
-      final List<String> ids = [userId1, userId2]..sort();
-
-      return ids.join('_');
-    }
-
     try {
-      final user = await FirebaseFirestore.instance
-          .collection("users")
-          .where("nickname", isEqualTo: trimmedNickname)
-          .get();
-
-      final bool isUserExists = user.docs.isNotEmpty;
-      if (!isUserExists) return _scaffoldMessage("User doesn't exists");
-
-      final currentUser = FirebaseAuth.instance.currentUser!.uid;
-      final otherUser = user.docs.first.id;
-
-      final chatId = generateChatId(currentUser, otherUser);
-      final chatDoc = await FirebaseFirestore.instance
-          .collection("chats")
-          .doc(chatId)
-          .get();
-
-      if (chatDoc.exists) return _scaffoldMessage("Chat already exists");
-
-      await FirebaseFirestore.instance.collection("chats").doc(chatId).set({
-        "participants": [currentUser, otherUser],
-        "createdAt": FieldValue.serverTimestamp(),
-        "lastMessage": null,
-        "lastMessageTimestamp": null,
-        "lastMessageSenderId": null,
-        "lastReadTimestamp": {
-          currentUser: FieldValue.serverTimestamp(),
-          otherUser: FieldValue.serverTimestamp(),
-        },
-      });
-
-      talker.info("Chat has been created");
-    } catch (err) {
-      talker.error(err);
+      await AddChatUseCase().onAddChat(nickname);
+    } on Left catch (err) {
+      _scaffoldMessage(err.value);
     }
   }
 
@@ -134,7 +85,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
               ),
               child: IconButton(
                 onPressed: () {
-                  FirebaseAuth.instance.signOut();
+                  SignOutUsecase().handleSignOut();
                 },
                 icon: Icon(Icons.exit_to_app, color: theme.colorScheme.primary),
               ),

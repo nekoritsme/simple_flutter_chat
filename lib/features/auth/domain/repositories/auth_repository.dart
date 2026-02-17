@@ -7,4 +7,6 @@ abstract interface class AuthRepository {
     required String nickname,
   });
   Future<Either> handleLogin({required String email, required String password});
+
+  void handleLogout();
 }
