@@ -1,10 +1,16 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:simple_flutter_chat/widgets/direct_messages.dart';
-import 'package:talker_flutter/talker_flutter.dart';
+import 'package:simple_flutter_chat/features/direct/domain/entities/Message.dart';
+import 'package:simple_flutter_chat/features/direct/domain/usecases/edit_message_usecase.dart';
+import 'package:simple_flutter_chat/features/direct/domain/usecases/get_current_user_usecase.dart';
+import 'package:simple_flutter_chat/features/direct/domain/usecases/get_lastmessage_stream_usecase.dart';
+import 'package:simple_flutter_chat/features/direct/domain/usecases/get_participants_usecase.dart';
+import 'package:simple_flutter_chat/features/direct/domain/usecases/submit_message_usecase.dart';
+import 'package:simple_flutter_chat/features/direct/presentation/widgets/direct_messages.dart';
+
+import '../../domain/usecases/update_lastmessage_usecase.dart';
+import '../../domain/usecases/update_lastreadtimestamp_usecase.dart';
 
 enum EditMode { message, edit }
 
@@ -25,56 +31,46 @@ class DirectMessagesScreen extends StatefulWidget {
 class _DirectMessagesScreenState extends State<DirectMessagesScreen>
     with WidgetsBindingObserver {
   final _messageController = TextEditingController();
-  final talker = Talker();
-  final _user = FirebaseAuth.instance.currentUser;
-  StreamSubscription<QuerySnapshot>? _messageSubscription;
+  final _user = GetCurrentUserUseCase().getUser();
+  StreamSubscription<Message?>? _messageSubscription;
   EditMode _editMode = EditMode.message;
-  late List<dynamic> _participants;
+  late List<String> _participants;
   String? _otherUserId;
   String? _editMessageId;
 
   void _updateReadStatus() async {
+    final participantsList = await GetParticipantsUseCase().getParticipants(
+      widget.chatId,
+    );
+
     try {
-      _participants =
-          (await FirebaseFirestore.instance
-                  .collection("chats")
-                  .doc(widget.chatId)
-                  .get())
-              .get("participants");
-
-      setState(() {
-        _otherUserId = _participants.firstWhere(
-          (element) => element != _user!.uid,
-        );
-      });
-
-      talker.info("Participants: $_participants, otherUserId: $_otherUserId");
-      await FirebaseFirestore.instance
-          .collection("chats")
-          .doc(widget.chatId)
-          .update({
-            "lastReadTimestamp.${_user!.uid}": FieldValue.serverTimestamp(),
-          });
-    } catch (err, stack) {
-      talker.error(err, stack);
+      participantsList.fold(
+        ifLeft: (error) {
+          return;
+        },
+        ifRight: (participants) {
+          _participants = participants;
+        },
+      );
+    } catch (error) {
+      debugPrint("Unexpected participants list error: $error");
     }
+
+    setState(() {
+      _otherUserId = _participants.firstWhere((element) => element != _user.id);
+    });
+
+    debugPrint("Participants: $_participants");
+
+    UpdateLastReadTimestampUseCase().updateLastReadTimestamp(widget.chatId);
   }
 
   void _setupMessageListener() {
-    _messageSubscription = FirebaseFirestore.instance
-        .collection("chats/${widget.chatId}/messages")
-        .orderBy("createdAt", descending: false)
-        .limit(1)
-        .snapshots()
-        .listen((snapshot) {
-          for (var change in snapshot.docChanges) {
-            if (change.type == DocumentChangeType.added) {
-              final messageData = change.doc.data();
-
-              if (messageData?["userId"] != _user!.uid) {
-                _updateReadStatus();
-              }
-            }
+    _messageSubscription = GetLastMessageStreamUseCase()
+        .getLastMessageStream(widget.chatId)
+        .listen((message) {
+          if (message?.messageId != _user.id) {
+            _updateReadStatus();
           }
         });
   }
@@ -101,55 +97,22 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
     final enteredMessage = _messageController.text;
     _messageController.clear();
 
-    try {
-      final messagesRef = FirebaseFirestore.instance.collection(
-        "chats/${widget.chatId}/messages",
-      );
+    final editMessage = await EditMessageUseCase().editMessage(
+      widget.chatId,
+      _editMessageId!,
+      enteredMessage,
+    );
 
-      var lastMessageQuery = await messagesRef
-          .orderBy("createdAt", descending: true)
-          .limit(1)
-          .get();
-
-      bool isLastMessage = false;
-      if (lastMessageQuery.docs.isNotEmpty) {
-        isLastMessage = lastMessageQuery.docs.first.id == _editMessageId;
-      }
-
-      await FirebaseFirestore.instance
-          .collection("chats/${widget.chatId}/messages")
-          .doc(_editMessageId)
-          .update({
-            "text": enteredMessage,
-            "editedAt": FieldValue.serverTimestamp(),
-          });
-
-      if (isLastMessage) {
-        lastMessageQuery = await messagesRef
-            .orderBy("createdAt", descending: true)
-            .limit(1)
-            .get();
-
-        if (lastMessageQuery.docs.isNotEmpty) {
-          await FirebaseFirestore.instance
-              .collection("chats")
-              .doc(widget.chatId)
-              .update({
-                "lastMessage": lastMessageQuery.docs.first.get("text"),
-                "lastMessageTimestamp": lastMessageQuery.docs.first.get(
-                  "createdAt",
-                ),
-              });
-        } else {
-          await FirebaseFirestore.instance
-              .collection("chats")
-              .doc(widget.chatId)
-              .update({"lastMessage": null, "lastMessageTimestamp": null});
-        }
-      }
-    } catch (err, stack) {
-      talker.error(err, stack);
-    }
+    editMessage.fold(
+      ifLeft: (_) {},
+      ifRight: (_) {
+        UpdateLastMessageUseCase().updateLastMessage(
+          widget.chatId,
+          enteredMessage,
+          _editMessageId!,
+        );
+      },
+    );
   }
 
   @override
@@ -184,28 +147,19 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
     if (enteredMessage.isEmpty) return;
     FocusScope.of(context).unfocus();
 
-    final userData = await FirebaseFirestore.instance
-        .collection("users")
-        .doc(_user!.uid)
-        .get();
+    final submitMessage = await SubmitMessageUseCase().submitMessage(
+      widget.chatId,
+      enteredMessage,
+    );
 
-    await FirebaseFirestore.instance
-        .collection("chats/${widget.chatId}/messages")
-        .add({
-          "text": enteredMessage,
-          "createdAt": FieldValue.serverTimestamp(),
-          "userId": FirebaseAuth.instance.currentUser!.uid,
-          "nickname": userData.data()!["nickname"],
-        });
-
-    await FirebaseFirestore.instance
-        .collection("chats")
-        .doc(widget.chatId)
-        .update({
-          "lastMessageTimestamp": FieldValue.serverTimestamp(),
-          "lastMessage": enteredMessage,
-          "lastMessageSenderId": _user.uid,
-        });
+    submitMessage.fold(
+      ifLeft: (_) {
+        // TODO: Display error on the screen
+      },
+      ifRight: (_) {
+        UpdateLastMessageUseCase().updateLastMessage(widget.chatId, null, null);
+      },
+    );
 
     _messageController.clear();
   }

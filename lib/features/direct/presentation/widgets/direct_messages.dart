@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:simple_flutter_chat/widgets/message_bubble.dart';
+import 'package:simple_flutter_chat/features/direct/presentation/widgets/message_bubble.dart';
 import 'package:vibration/vibration.dart';
 
 class DirectMessagesWidget extends StatefulWidget {

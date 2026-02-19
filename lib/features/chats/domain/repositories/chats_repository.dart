@@ -6,4 +6,9 @@ abstract interface class ChatsRepository {
 
   Stream<List<Chat>> getChatsStream();
   Stream<int> getUnreadCountStream(String chatId, String userId);
+  void updateLastMessage(
+    String chatId,
+    String? compareWithMessage,
+    String? compareWithMessageId,
+  );
 }

@@ -1,5 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:simple_flutter_chat/core/sources/firebase_sources.dart';
+import 'package:simple_flutter_chat/features/direct/data/presentation/direct_repository_impl.dart';
+import 'package:simple_flutter_chat/features/direct/domain/presentation/direct_repository.dart';
 import 'package:simple_flutter_chat/shared/data/repositories/user_repository_impl.dart';
 import 'package:simple_flutter_chat/shared/domain/repositories/user_repository.dart';
 
@@ -27,10 +29,19 @@ Future<void> initializeSingletons() async {
     ),
   );
 
+  // TODO: GET ALL USER DATA FROM REPOSITORY NOT FROM FIREBASE AUTH DIRECTLY
+
   sl.registerLazySingleton<ChatsRepository>(
     () => ChatsRepositoryImpl(
       firebaseAuth: sl<FirebaseAuthSource>().instance,
       firebaseFirestore: sl<FirebaseFirestoreSource>().instance,
+    ),
+  );
+
+  sl.registerLazySingleton<DirectRepository>(
+    () => DirectRepositoryImpl(
+      firestore: sl<FirebaseFirestoreSource>().instance,
+      userRepo: sl<UserRepository>(),
     ),
   );
 }

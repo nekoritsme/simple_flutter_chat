@@ -133,4 +133,41 @@ class ChatsRepositoryImpl implements ChatsRepository {
           return unreadMessages.count ?? 0;
         });
   }
+
+  @override
+  void updateLastMessage(
+    String chatId,
+    String? compareWithMessage,
+    String? compareWithMessageId,
+  ) async {
+    final messagesRef = _firebaseFirestore.collection("chats/$chatId/messages");
+
+    var lastMessageQuery = await messagesRef
+        .orderBy("createdAt", descending: true)
+        .limit(1)
+        .get();
+
+    bool isLastMessage = false;
+    if (lastMessageQuery.docs.isNotEmpty) {
+      isLastMessage = lastMessageQuery.docs.first.id == compareWithMessageId;
+    }
+
+    if (isLastMessage || compareWithMessage == null) {
+      lastMessageQuery = await messagesRef
+          .orderBy("createdAt", descending: true)
+          .limit(1)
+          .get();
+
+      if (lastMessageQuery.docs.isNotEmpty) {
+        await _firebaseFirestore.collection("chats").doc(chatId).update({
+          "lastMessage": lastMessageQuery.docs.first.get("text"),
+          "lastMessageTimestamp": lastMessageQuery.docs.first.get("createdAt"),
+        });
+      } else {
+        await FirebaseFirestore.instance.collection("chats").doc(chatId).update(
+          {"lastMessage": null, "lastMessageTimestamp": null},
+        );
+      }
+    }
+  }
 }
