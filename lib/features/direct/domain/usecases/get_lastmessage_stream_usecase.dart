@@ -4,7 +4,7 @@ import '../entities/Message.dart';
 import '../repositories/direct_repository.dart';
 
 class GetLastMessageStreamUseCase {
-  Stream<Message?> getLastMessageStream(String chatId) {
-    return sl<DirectRepository>().getLastMessageStream(chatId);
+  Stream<Message?> getLastMessageStream({required String chatId}) {
+    return sl<DirectRepository>().getLastMessageStream(chatId: chatId);
   }
 }

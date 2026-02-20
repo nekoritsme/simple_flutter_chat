@@ -40,7 +40,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
 
   void _updateReadStatus() async {
     final participantsList = await GetParticipantsUseCase().getParticipants(
-      widget.chatId,
+      chatId: widget.chatId,
     );
 
     try {
@@ -62,12 +62,14 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
 
     debugPrint("Participants: $_participants");
 
-    UpdateLastReadTimestampUseCase().updateLastReadTimestamp(widget.chatId);
+    UpdateLastReadTimestampUseCase().updateLastReadTimestamp(
+      chatId: widget.chatId,
+    );
   }
 
   void _setupMessageListener() {
     _messageSubscription = GetLastMessageStreamUseCase()
-        .getLastMessageStream(widget.chatId)
+        .getLastMessageStream(chatId: widget.chatId)
         .listen((message) {
           if (message?.messageId != _user.id) {
             _updateReadStatus();
@@ -98,18 +100,18 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
     _messageController.clear();
 
     final editMessage = await EditMessageUseCase().editMessage(
-      widget.chatId,
-      _editMessageId!,
-      enteredMessage,
+      chatId: widget.chatId,
+      messageId: _editMessageId!,
+      newMessage: enteredMessage,
     );
 
     editMessage.fold(
       ifLeft: (_) {},
       ifRight: (_) {
         UpdateLastMessageUseCase().updateLastMessage(
-          widget.chatId,
-          enteredMessage,
-          _editMessageId!,
+          chatId: widget.chatId,
+          compareWithMessage: enteredMessage,
+          compareWithMessageId: _editMessageId!,
         );
       },
     );
@@ -148,8 +150,8 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
     FocusScope.of(context).unfocus();
 
     final submitMessage = await SubmitMessageUseCase().submitMessage(
-      widget.chatId,
-      enteredMessage,
+      chatId: widget.chatId,
+      message: enteredMessage,
     );
 
     submitMessage.fold(
@@ -157,7 +159,11 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
         // TODO: Display error on the screen
       },
       ifRight: (_) {
-        UpdateLastMessageUseCase().updateLastMessage(widget.chatId, null, null);
+        UpdateLastMessageUseCase().updateLastMessage(
+          chatId: widget.chatId,
+          compareWithMessage: null,
+          compareWithMessageId: null,
+        );
       },
     );
 

@@ -2,15 +2,15 @@ import 'package:simple_flutter_chat/features/chats/domain/repositories/chats_rep
 import 'package:simple_flutter_chat/service_locator.dart';
 
 class UpdateLastMessageUseCase {
-  void updateLastMessage(
-    String chatId,
-    String? compareWithMessage,
-    String? compareWithMessageId,
-  ) {
+  void updateLastMessage({
+    required String chatId,
+    required String? compareWithMessage,
+    required String? compareWithMessageId,
+  }) {
     sl<ChatsRepository>().updateLastMessage(
-      chatId,
-      compareWithMessage,
-      compareWithMessageId,
+      chatId: chatId,
+      compareWithMessage: compareWithMessage,
+      compareWithMessageId: compareWithMessageId,
     );
   }
 }

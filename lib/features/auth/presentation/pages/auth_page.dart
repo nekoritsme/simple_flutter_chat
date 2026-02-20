@@ -14,6 +14,7 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   void _scaffoldMessage(String? msg) {
+    // TODO: Get to shared folder as a widget
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(
       context,

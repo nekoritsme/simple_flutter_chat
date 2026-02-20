@@ -17,7 +17,7 @@ class ChatsRepositoryImpl implements ChatsRepository {
        _firebaseFirestore = firebaseFirestore;
 
   @override
-  Future<Either<String, String>> onAddChat(String nickname) async {
+  Future<Either<String, String>> onAddChat({required String nickname}) async {
     final trimmedNickname = nickname.trim();
 
     String generateChatId(String userId1, String userId2) {
@@ -105,7 +105,10 @@ class ChatsRepositoryImpl implements ChatsRepository {
   }
 
   @override
-  Stream<int> getUnreadCountStream(String chatId, String userId) {
+  Stream<int> getUnreadCountStream({
+    required String chatId,
+    required String userId,
+  }) {
     return _firebaseFirestore
         .collection('chats')
         .doc(chatId)
@@ -135,11 +138,11 @@ class ChatsRepositoryImpl implements ChatsRepository {
   }
 
   @override
-  void updateLastMessage(
-    String chatId,
-    String? compareWithMessage,
-    String? compareWithMessageId,
-  ) async {
+  void updateLastMessage({
+    required String chatId,
+    required String? compareWithMessage,
+    required String? compareWithMessageId,
+  }) async {
     final messagesRef = _firebaseFirestore.collection("chats/$chatId/messages");
 
     var lastMessageQuery = await messagesRef

@@ -3,7 +3,7 @@ import 'package:simple_flutter_chat/features/chats/domain/repositories/chats_rep
 import 'package:simple_flutter_chat/service_locator.dart';
 
 class AddChatUseCase {
-  Future<Either<String, String>> onAddChat(String nickname) async {
-    return await sl<ChatsRepository>().onAddChat(nickname);
+  Future<Either<String, String>> onAddChat({required String nickname}) async {
+    return await sl<ChatsRepository>().onAddChat(nickname: nickname);
   }
 }

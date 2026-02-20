@@ -4,11 +4,15 @@ import 'package:simple_flutter_chat/service_locator.dart';
 import '../repositories/direct_repository.dart';
 
 class EditMessageUseCase {
-  Future<Either<String, String>> editMessage(
-    String chatId,
-    String messageId,
-    String newMessage,
-  ) async {
-    return sl<DirectRepository>().editMessage(chatId, messageId, newMessage);
+  Future<Either<String, String>> editMessage({
+    required String chatId,
+    required String messageId,
+    required String newMessage,
+  }) async {
+    return sl<DirectRepository>().editMessage(
+      chatId: chatId,
+      messageId: messageId,
+      newMessage: newMessage,
+    );
   }
 }

@@ -20,7 +20,10 @@ class _ChatListWidgetState extends State<ChatListWidget> {
   late final Stream<List<Chat>> _chatsStream;
 
   Stream<int> _getUnreadCount(String chatId, String userId) {
-    return GetUnreadCountStreamUseCase().getUnreadCountStream(chatId, userId);
+    return GetUnreadCountStreamUseCase().getUnreadCountStream(
+      chatId: chatId,
+      userId: userId,
+    );
   }
 
   @override
@@ -72,7 +75,7 @@ class _ChatListWidgetState extends State<ChatListWidget> {
             return StreamBuilder(
               key: ValueKey(loadedChats[index].id),
               stream: GetSpecificUserStreamUseCase().getSpecificUserStream(
-                otherUser,
+                uid: otherUser,
               ),
               builder: (contx, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {

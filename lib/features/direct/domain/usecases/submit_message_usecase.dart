@@ -4,10 +4,13 @@ import '../../../../service_locator.dart';
 import '../repositories/direct_repository.dart';
 
 class SubmitMessageUseCase {
-  Future<Either<String, String>> submitMessage(
-    String chatId,
-    String message,
-  ) async {
-    return await sl<DirectRepository>().submitMessage(chatId, message);
+  Future<Either<String, String>> submitMessage({
+    required String chatId,
+    required String message,
+  }) async {
+    return await sl<DirectRepository>().submitMessage(
+      chatId: chatId,
+      message: message,
+    );
   }
 }

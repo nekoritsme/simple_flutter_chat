@@ -31,7 +31,7 @@ void main() async {
   );
 }
 
-// TODO: Make it clear to clean architecture restrictions
+// TODO: Make it clear to clean architecture restrictions, work with usecase
 class ChatApp extends StatelessWidget {
   const ChatApp({super.key});
 

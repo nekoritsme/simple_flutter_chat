@@ -39,7 +39,7 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Stream<UserEntity> specificUserStream(String uid) {
+  Stream<UserEntity> specificUserStream({required String uid}) {
     return _firebaseFirestore.collection("users").doc(uid).snapshots().map((
       documentSnapshot,
     ) {

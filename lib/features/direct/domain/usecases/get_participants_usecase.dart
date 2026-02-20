@@ -4,7 +4,9 @@ import 'package:simple_flutter_chat/service_locator.dart';
 import '../repositories/direct_repository.dart';
 
 class GetParticipantsUseCase {
-  Future<Either<String, List<String>>> getParticipants(String chatId) async {
-    return await sl<DirectRepository>().getParticipants(chatId);
+  Future<Either<String, List<String>>> getParticipants({
+    required String chatId,
+  }) async {
+    return await sl<DirectRepository>().getParticipants(chatId: chatId);
   }
 }

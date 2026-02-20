@@ -18,7 +18,9 @@ class DirectRepositoryImpl implements DirectRepository {
        _userRepo = userRepo;
 
   @override
-  Future<Either<String, List<String>>> getParticipants(String chatId) async {
+  Future<Either<String, List<String>>> getParticipants({
+    required String chatId,
+  }) async {
     try {
       final participants =
           (await _firestore.collection("chats").doc(chatId).get()).get(
@@ -33,7 +35,9 @@ class DirectRepositoryImpl implements DirectRepository {
   }
 
   @override
-  Future<Either<String, String>> updateLastReadTimestamp(String chatId) async {
+  Future<Either<String, String>> updateLastReadTimestamp({
+    required String chatId,
+  }) async {
     try {
       await FirebaseFirestore.instance.collection("chats").doc(chatId).update({
         "lastReadTimestamp.${_userRepo.currentUser.id}":
@@ -48,7 +52,7 @@ class DirectRepositoryImpl implements DirectRepository {
   }
 
   @override
-  Stream<Message?> getLastMessageStream(String chatId) {
+  Stream<Message?> getLastMessageStream({required String chatId}) {
     return _firestore
         .collection("chats/$chatId/messages")
         .orderBy("createdAt", descending: false)
@@ -73,10 +77,10 @@ class DirectRepositoryImpl implements DirectRepository {
   }
 
   @override
-  Future<Either<String, String>> submitMessage(
-    String chatId,
-    String message,
-  ) async {
+  Future<Either<String, String>> submitMessage({
+    required String chatId,
+    required String message,
+  }) async {
     try {
       final userData = await _firestore
           .collection("users")
@@ -98,11 +102,11 @@ class DirectRepositoryImpl implements DirectRepository {
   }
 
   @override
-  Future<Either<String, String>> editMessage(
-    String chatId,
-    String messageId,
-    String newMessage,
-  ) async {
+  Future<Either<String, String>> editMessage({
+    required String chatId,
+    required String messageId,
+    required String newMessage,
+  }) async {
     try {
       await FirebaseFirestore.instance
           .collection("chats/$chatId/messages")

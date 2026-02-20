@@ -48,7 +48,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
   void _onAddChat(String nickname) async {
     try {
-      await AddChatUseCase().onAddChat(nickname);
+      await AddChatUseCase().onAddChat(nickname: nickname);
     } on Left catch (err) {
       _scaffoldMessage(err.value);
     }
