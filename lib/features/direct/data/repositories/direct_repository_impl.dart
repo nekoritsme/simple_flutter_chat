@@ -5,7 +5,7 @@ import 'package:simple_flutter_chat/core/logger.dart';
 import 'package:simple_flutter_chat/shared/domain/repositories/user_repository.dart';
 
 import '../../domain/entities/Message.dart';
-import '../../domain/presentation/direct_repository.dart';
+import '../../domain/repositories/direct_repository.dart';
 
 class DirectRepositoryImpl implements DirectRepository {
   final FirebaseFirestore _firestore;
