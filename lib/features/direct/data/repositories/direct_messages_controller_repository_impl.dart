@@ -186,6 +186,7 @@ class DirectMessagesControllerRepositoryImpl
   @override
   Future<void> init({required String chatId}) async {
     this.chatId = chatId;
+    _messages.clear();
 
     await loadInitialPage();
   }
