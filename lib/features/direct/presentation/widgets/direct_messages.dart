@@ -206,7 +206,7 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
         !_scrollController.hasClients ||
         (_scrollController.position.maxScrollExtent -
                 _scrollController.offset) <=
-            120;
+            160;
     final shouldAutoScroll =
         !_didInitialAutoScroll || (hasNewBottomMessage && isNearBottom);
 

@@ -2,7 +2,9 @@ import 'package:get_it/get_it.dart';
 import 'package:simple_flutter_chat/core/sources/firebase_sources.dart';
 import 'package:simple_flutter_chat/features/direct/data/repositories/direct_messages_controller_repository_impl.dart';
 import 'package:simple_flutter_chat/features/direct/domain/repositories/direct_messages_controller_repository.dart';
+import 'package:simple_flutter_chat/shared/data/repositories/presence_service_repository_impl.dart';
 import 'package:simple_flutter_chat/shared/data/repositories/user_repository_impl.dart';
+import 'package:simple_flutter_chat/shared/domain/repositories/presence_service_repository.dart';
 import 'package:simple_flutter_chat/shared/domain/repositories/user_repository.dart';
 
 import 'features/auth/data/repositories/auth_repository_impl.dart';
@@ -51,6 +53,13 @@ Future<void> initializeSingletons() async {
     () => DirectMessagesControllerRepositoryImpl(
       pageSize: 20,
       firestore: sl<FirebaseFirestoreSource>().instance,
+    ),
+  );
+
+  sl.registerLazySingleton<PresenceServiceRepository>(
+    () => PresenceServiceRepositoryImpl(
+      firestore: sl<FirebaseFirestoreSource>().instance,
+      userRep: sl<UserRepository>(),
     ),
   );
 }

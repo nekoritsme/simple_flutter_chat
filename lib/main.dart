@@ -6,6 +6,7 @@ import 'package:simple_flutter_chat/features/chats/presentation/pages/chats_page
 import 'package:simple_flutter_chat/firebase_options.dart';
 import 'package:simple_flutter_chat/screens/splash.dart';
 import 'package:simple_flutter_chat/service_locator.dart';
+import 'package:simple_flutter_chat/shared/presentation/widgets/presence_wrapper.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 import 'core/sources/firebase_sources.dart';
@@ -69,7 +70,7 @@ class ChatApp extends StatelessWidget {
           }
 
           if (snapshot.hasData) {
-            return const ChatsScreen();
+            return PresenceWrapper(child: const ChatsScreen());
           }
 
           return const AuthScreen();
