@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:link_text/link_text.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -25,12 +24,11 @@ class MessageBubble extends StatelessWidget {
   final bool isFirstInSequence;
   final String message;
   final bool isMe;
-  final Timestamp createdAt;
+  final DateTime createdAt;
   final bool isRead;
   final bool? isEdited;
 
-  String _formatMessageTime(Timestamp createdAt) {
-    final date = createdAt.toDate();
+  String _formatMessageTime(DateTime date) {
     final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
     final minute = date.minute.toString().padLeft(2, '0');
     final period = date.hour >= 12 ? "PM" : "AM";

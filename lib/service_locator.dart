@@ -1,5 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:simple_flutter_chat/core/sources/firebase_sources.dart';
+import 'package:simple_flutter_chat/features/direct/data/repositories/direct_messages_controller_repository_impl.dart';
+import 'package:simple_flutter_chat/features/direct/domain/repositories/direct_messages_controller_repository.dart';
 import 'package:simple_flutter_chat/shared/data/repositories/user_repository_impl.dart';
 import 'package:simple_flutter_chat/shared/domain/repositories/user_repository.dart';
 
@@ -42,6 +44,13 @@ Future<void> initializeSingletons() async {
     () => DirectRepositoryImpl(
       firestore: sl<FirebaseFirestoreSource>().instance,
       userRepo: sl<UserRepository>(),
+    ),
+  );
+
+  sl.registerLazySingleton<DirectMessagesControllerRepository>(
+    () => DirectMessagesControllerRepositoryImpl(
+      pageSize: 20,
+      firestore: sl<FirebaseFirestoreSource>().instance,
     ),
   );
 }

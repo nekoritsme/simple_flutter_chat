@@ -77,16 +77,13 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
         });
   }
 
-  void _editMessage({
-    required String messageId,
-    required Map<String, dynamic> message,
-  }) {
+  void _editMessage({required String messageId, required Message message}) {
     setState(() {
       _editMode = EditMode.edit;
       _editMessageId = messageId;
     });
 
-    _messageController.text = message["text"];
+    _messageController.text = message.text;
   }
 
   void _editMessageConfirm() async {

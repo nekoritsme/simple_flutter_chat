@@ -19,4 +19,8 @@ abstract interface class DirectRepository {
     required String messageId,
     required String newMessage,
   });
+  Future<Either<String, String>> deleteMessage({
+    required String chatId,
+    required String messageId,
+  });
 }

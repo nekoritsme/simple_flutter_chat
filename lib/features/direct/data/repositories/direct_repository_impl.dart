@@ -22,10 +22,14 @@ class DirectRepositoryImpl implements DirectRepository {
     required String chatId,
   }) async {
     try {
-      final participants =
+      final participantsRaw =
           (await _firestore.collection("chats").doc(chatId).get()).get(
             "participants",
           );
+
+      final participants = (participantsRaw as List)
+          .whereType<String>()
+          .toList();
 
       return Right(participants);
     } catch (err, stack) {
@@ -68,7 +72,9 @@ class DirectRepositoryImpl implements DirectRepository {
                   DateTime.now(),
               nickname: messageData["nickname"] ?? "Error nickname",
               text: messageData["text"] ?? "Error text",
-              messageId: messageData["userId"] ?? "Error id",
+              userId: messageData["userId"] ?? "Error id",
+              messageId: "Message id", // doesn't matter ig
+              editedAt: messageData["editedAt"],
             );
           }
 
@@ -115,6 +121,54 @@ class DirectRepositoryImpl implements DirectRepository {
             "text": newMessage,
             "editedAt": FieldValue.serverTimestamp(),
           });
+
+      return Right("Success");
+    } catch (err, stack) {
+      talker.error(err, stack);
+      return Left("Failure");
+    }
+  }
+
+  @override
+  Future<Either<String, String>> deleteMessage({
+    required String chatId,
+    required String messageId,
+  }) async {
+    try {
+      final messagesRef = _firestore.collection("chats/$chatId/messages");
+
+      var lastMessageQuery = await messagesRef
+          .orderBy("createdAt", descending: true)
+          .limit(1)
+          .get();
+
+      bool isLastMessage = false;
+      if (lastMessageQuery.docs.isNotEmpty) {
+        isLastMessage = lastMessageQuery.docs.first.id == messageId;
+      }
+
+      await messagesRef.doc(messageId).delete();
+
+      if (isLastMessage) {
+        lastMessageQuery = await messagesRef
+            .orderBy("createdAt", descending: true)
+            .limit(1)
+            .get();
+
+        if (lastMessageQuery.docs.isNotEmpty) {
+          await _firestore.collection("chats").doc(chatId).update({
+            "lastMessage": lastMessageQuery.docs.first.get("text"),
+            "lastMessageTimestamp": lastMessageQuery.docs.first.get(
+              "createdAt",
+            ),
+          });
+        } else {
+          await _firestore.collection("chats").doc(chatId).update({
+            "lastMessage": null,
+            "lastMessageTimestamp": null,
+          });
+        }
+      }
 
       return Right("Success");
     } catch (err, stack) {

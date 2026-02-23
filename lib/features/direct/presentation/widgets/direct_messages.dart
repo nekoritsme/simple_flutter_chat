@@ -2,8 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:simple_flutter_chat/features/direct/domain/usecases/delete_message_usecase.dart';
+import 'package:simple_flutter_chat/features/direct/domain/usecases/init_messages_stream_usecase.dart';
+import 'package:simple_flutter_chat/features/direct/domain/usecases/load_older_messages_usecase.dart';
 import 'package:simple_flutter_chat/features/direct/presentation/widgets/message_bubble.dart';
 import 'package:vibration/vibration.dart';
+
+import '../../domain/entities/Message.dart';
+import '../../domain/usecases/get_messages_stream_usecase.dart';
 
 class DirectMessagesWidget extends StatefulWidget {
   const DirectMessagesWidget({
@@ -13,10 +19,7 @@ class DirectMessagesWidget extends StatefulWidget {
     required this.otherUserId,
   });
 
-  final Function({
-    required String messageId,
-    required Map<String, dynamic> message,
-  })
+  final Function({required String messageId, required Message message})
   editMessage;
 
   final String chatId;
@@ -28,7 +31,9 @@ class DirectMessagesWidget extends StatefulWidget {
 
 class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
   final _scrollController = ScrollController();
-  late final Stream<QuerySnapshot<Map<String, dynamic>>> _messagesStream;
+  bool _didInitialAutoScroll = false;
+  String? _lastNewestMessageId;
+  bool _isLoadingOlder = false;
 
   Stream<dynamic> get _otherUserLastReadStream {
     return FirebaseFirestore.instance
@@ -45,7 +50,7 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
   Future<void> _showMessageMenu({
     required Offset globalPosition,
     required String messageId,
-    required Map<String, dynamic> message,
+    required Message message,
     required bool isMe,
   }) async {
     final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
@@ -134,45 +139,10 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
     );
 
     if (selectedAction == "delete") {
-      final messagesRef = FirebaseFirestore.instance.collection(
-        "chats/${widget.chatId}/messages",
+      await DeleteMessageUseCase().deleteMessage(
+        chatId: widget.chatId,
+        messageId: messageId,
       );
-
-      var lastMessageQuery = await messagesRef
-          .orderBy("createdAt", descending: true)
-          .limit(1)
-          .get();
-
-      bool isLastMessage = false;
-      if (lastMessageQuery.docs.isNotEmpty) {
-        isLastMessage = lastMessageQuery.docs.first.id == messageId;
-      }
-
-      await messagesRef.doc(messageId).delete();
-
-      if (isLastMessage) {
-        lastMessageQuery = await messagesRef
-            .orderBy("createdAt", descending: true)
-            .limit(1)
-            .get();
-
-        if (lastMessageQuery.docs.isNotEmpty) {
-          await FirebaseFirestore.instance
-              .collection("chats")
-              .doc(widget.chatId)
-              .update({
-                "lastMessage": lastMessageQuery.docs.first.get("text"),
-                "lastMessageTimestamp": lastMessageQuery.docs.first.get(
-                  "createdAt",
-                ),
-              });
-        } else {
-          await FirebaseFirestore.instance
-              .collection("chats")
-              .doc(widget.chatId)
-              .update({"lastMessage": null, "lastMessageTimestamp": null});
-        }
-      }
     }
 
     if (selectedAction == "edit") {
@@ -182,16 +152,83 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
     }
 
     if (selectedAction == "copy") {
-      await Clipboard.setData(ClipboardData(text: message["text"]));
+      await Clipboard.setData(ClipboardData(text: message.text));
     }
+  }
+
+  Future<void> _loadOlderPreservePosition() async {
+    if (_isLoadingOlder || !_scrollController.hasClients) return;
+    _isLoadingOlder = true;
+
+    final oldOffset = _scrollController.offset;
+    final oldMaxScroll = _scrollController.position.maxScrollExtent;
+
+    try {
+      await LoadOlderMessagesUseCase().loadOlderMessages();
+    } finally {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_scrollController.hasClients || !mounted) {
+          _isLoadingOlder = false;
+          return;
+        }
+
+        final newMaxScroll = _scrollController.position.maxScrollExtent;
+        final delta = newMaxScroll - oldMaxScroll;
+        final targetOffset = oldOffset + delta;
+
+        _scrollController.jumpTo(
+          targetOffset.clamp(
+            _scrollController.position.minScrollExtent,
+            _scrollController.position.maxScrollExtent,
+          ),
+        );
+        _isLoadingOlder = false;
+      });
+    }
+  }
+
+  void _onScroll() {
+    if (_scrollController.hasClients &&
+        _scrollController.offset <=
+            _scrollController.position.minScrollExtent &&
+        !_scrollController.position.outOfRange) {
+      _loadOlderPreservePosition();
+    }
+  }
+
+  void _autoScrollIfNeeded(List<Message> messages) {
+    if (messages.isEmpty) return;
+
+    final newestMessageId = messages.last.messageId;
+    final hasNewBottomMessage =
+        _lastNewestMessageId != null && newestMessageId != _lastNewestMessageId;
+    final isNearBottom =
+        !_scrollController.hasClients ||
+        (_scrollController.position.maxScrollExtent -
+                _scrollController.offset) <=
+            120;
+    final shouldAutoScroll =
+        !_didInitialAutoScroll || (hasNewBottomMessage && isNearBottom);
+
+    _lastNewestMessageId = newestMessageId;
+    if (!shouldAutoScroll) return;
+
+    _didInitialAutoScroll = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients || !mounted) return;
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    });
   }
 
   @override
   void initState() {
-    _messagesStream = FirebaseFirestore.instance
-        .collection("chats/${widget.chatId}/messages")
-        .orderBy("createdAt", descending: false)
-        .snapshots();
+    InitMessagesStreamUseCase().init(chatId: widget.chatId);
+    _scrollController.addListener(_onScroll);
     super.initState();
   }
 
@@ -208,17 +245,20 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
     return StreamBuilder(
       stream: _otherUserLastReadStream,
       builder: (context, lastReadSnapshot) {
-        final Timestamp? lastReadOtherUserTimestamp = lastReadSnapshot.data;
+        DateTime? lastReadOtherUserTimestamp;
+        final data = lastReadSnapshot.data;
+        if (data != null && data is Timestamp) {
+          lastReadOtherUserTimestamp = data.toDate();
+        }
 
         return StreamBuilder(
-          stream: _messagesStream,
+          stream: GetMessagesStreamUseCase().getMessagesStream(),
           builder: (ctx, messagesSnapshots) {
             if (messagesSnapshots.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            if (!messagesSnapshots.hasData ||
-                messagesSnapshots.data!.docs.isEmpty) {
+            if (!messagesSnapshots.hasData || messagesSnapshots.data!.isEmpty) {
               return const Center(child: Text("No messages was found"));
             }
 
@@ -226,68 +266,48 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
               return const Center(child: Text("Something went wrong"));
             }
 
-            final loadedMessages = messagesSnapshots.data!.docs;
-
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (_scrollController.hasClients) {
-                _scrollController.jumpTo(
-                  _scrollController.position.maxScrollExtent,
-                );
-
-                Future.delayed(const Duration(milliseconds: 300), () {
-                  if (_scrollController.hasClients && mounted) {
-                    _scrollController.animateTo(
-                      _scrollController.position.maxScrollExtent,
-                      duration: Duration(milliseconds: 500),
-                      curve: Curves.easeInOut,
-                    );
-                  }
-                });
-              }
-            });
+            final loadedMessages = messagesSnapshots.data!;
+            _autoScrollIfNeeded(loadedMessages);
 
             return ListView.separated(
               itemCount: loadedMessages.length,
               reverse: false,
               controller: _scrollController,
               itemBuilder: (contx, index) {
-                final chatMessage = loadedMessages[index].data();
+                final chatMessage = loadedMessages[index];
                 final nextChatMessage = index + 1 < loadedMessages.length
-                    ? loadedMessages[index + 1].data()
+                    ? loadedMessages[index + 1]
                     : null;
 
-                final isMe = chatMessage["userId"] == authenticatedUser!.uid;
+                final isMe = chatMessage.userId == authenticatedUser!.uid;
 
-                final currentUserId = chatMessage["userId"];
-                final nextUserId = nextChatMessage != null
-                    ? nextChatMessage["userId"]
-                    : null;
+                final currentUserId = chatMessage.userId;
+                final nextUserId = nextChatMessage?.userId;
 
-                final messageText = (chatMessage["text"] ?? "").toString();
+                final messageText = (chatMessage.text).toString();
                 final isNextBySameUser = currentUserId == nextUserId;
 
-                final messageId = loadedMessages[index].id;
+                final messageId = loadedMessages[index].messageId;
 
-                final Timestamp? createdAt = chatMessage["createdAt"];
+                final DateTime createdAt = chatMessage.createdAt;
                 final isRead =
-                    createdAt != null &&
                     lastReadOtherUserTimestamp != null &&
-                    lastReadOtherUserTimestamp.compareTo(createdAt) >= 0;
+                    lastReadOtherUserTimestamp.isAfter(createdAt);
 
-                final isEdited = chatMessage["editedAt"] != null;
+                final isEdited = chatMessage.editedAt != null;
 
                 final bubble = isNextBySameUser
                     ? MessageBubble.next(
                         message: messageText,
                         isMe: isMe,
-                        createdAt: createdAt ?? Timestamp(0, 0),
+                        createdAt: createdAt,
                         isRead: isRead,
                         isEdited: isEdited,
                       )
                     : MessageBubble.first(
                         message: messageText,
                         isMe: isMe,
-                        createdAt: createdAt ?? Timestamp(0, 0),
+                        createdAt: createdAt,
                         isRead: isRead,
                         isEdited: isEdited,
                       );
