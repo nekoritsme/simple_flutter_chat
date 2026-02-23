@@ -2,18 +2,22 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dart_either/src/dart_either.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:simple_flutter_chat/core/logger.dart';
+import 'package:simple_flutter_chat/shared/domain/repositories/presence_service_repository.dart';
 
 import '../../domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final FirebaseAuth _firebaseAuth;
   final FirebaseFirestore _firebaseFirestore;
+  final PresenceServiceRepository _presenceServiceRepository;
 
   AuthRepositoryImpl({
     required FirebaseAuth firebaseAuth,
     required FirebaseFirestore firebaseFirestore,
+    required PresenceServiceRepository presenceServiceRepository,
   }) : _firebaseAuth = firebaseAuth,
-       _firebaseFirestore = firebaseFirestore;
+       _firebaseFirestore = firebaseFirestore,
+       _presenceServiceRepository = presenceServiceRepository;
 
   @override
   Future<Either> handleLogin({
@@ -48,9 +52,12 @@ class AuthRepositoryImpl implements AuthRepository {
           .collection("users")
           .doc(userCredentials.user!.uid)
           .set({
+            "id": userCredentials.user!.uid,
             "nickname": nickname,
             "email": email,
             "createdAt": Timestamp.now(),
+            "isOnline": false,
+            "lastSeenOnline": Timestamp.now(),
           });
       talker.info("User has been registered: $userCredentials");
 
@@ -62,7 +69,13 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  void handleLogout() {
-    _firebaseAuth.signOut();
+  Future<void> handleLogout() async {
+    try {
+      await _presenceServiceRepository.setOffline();
+    } catch (err, stackTrace) {
+      talker.error(err, stackTrace);
+    } finally {
+      await _firebaseAuth.signOut();
+    }
   }
 }

@@ -1,9 +1,7 @@
-import 'package:dart_either/dart_either.dart';
+import '../entities/activity.dart';
 
 abstract interface class PresenceServiceRepository {
-  Future<Either<String, Map<String, dynamic>>> getStatusByUserId({
-    required String userId,
-  });
+  Stream<ActivityStatus> getStatusStreamByUserId({required String userId});
   Future<void> setOnline();
   Future<void> setOffline();
 }

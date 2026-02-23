@@ -84,8 +84,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 color: theme.colorScheme.primary.withAlpha(90),
               ),
               child: IconButton(
-                onPressed: () {
-                  SignOutUsecase().handleSignOut();
+                onPressed: () async {
+                  await SignOutUsecase().handleSignOut();
                 },
                 icon: Icon(Icons.exit_to_app, color: theme.colorScheme.primary),
               ),

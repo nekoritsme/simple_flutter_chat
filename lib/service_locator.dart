@@ -19,12 +19,6 @@ final sl = GetIt.instance;
 Future<void> initializeSingletons() async {
   sl.registerLazySingleton(() => FirebaseAuthSource());
   sl.registerLazySingleton(() => FirebaseFirestoreSource());
-  sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(
-      firebaseAuth: sl<FirebaseAuthSource>().instance,
-      firebaseFirestore: sl<FirebaseFirestoreSource>().instance,
-    ),
-  );
 
   sl.registerLazySingleton<UserRepository>(
     () => UserRepositoryImpl(
@@ -60,6 +54,14 @@ Future<void> initializeSingletons() async {
     () => PresenceServiceRepositoryImpl(
       firestore: sl<FirebaseFirestoreSource>().instance,
       userRep: sl<UserRepository>(),
+    ),
+  );
+
+  sl.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(
+      firebaseAuth: sl<FirebaseAuthSource>().instance,
+      firebaseFirestore: sl<FirebaseFirestoreSource>().instance,
+      presenceServiceRepository: sl<PresenceServiceRepository>(),
     ),
   );
 }

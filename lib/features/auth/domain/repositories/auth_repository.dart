@@ -8,5 +8,5 @@ abstract interface class AuthRepository {
   });
   Future<Either> handleLogin({required String email, required String password});
 
-  void handleLogout();
+  Future<void> handleLogout();
 }

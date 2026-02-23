@@ -9,6 +9,7 @@ import 'package:simple_flutter_chat/features/direct/domain/usecases/get_particip
 import 'package:simple_flutter_chat/features/direct/domain/usecases/submit_message_usecase.dart';
 import 'package:simple_flutter_chat/features/direct/presentation/widgets/direct_messages.dart';
 
+import '../../domain/usecases/get_activity_status_stream_usecase.dart';
 import '../../domain/usecases/update_lastmessage_usecase.dart';
 import '../../domain/usecases/update_lastreadtimestamp_usecase.dart';
 
@@ -37,6 +38,29 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   late List<String> _participants;
   String? _otherUserId;
   String? _editMessageId;
+
+  String _formatDate(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.isNegative) {
+      return "recently was online";
+    }
+
+    if (difference.inHours < 1) {
+      return "was online ${difference.inMinutes} minutes ago";
+    }
+
+    if (difference.inDays < 1) {
+      return "was online ${difference.inHours} hours ago";
+    }
+
+    if (difference.inDays <= 9) {
+      return "was online ${difference.inDays} days ago";
+    }
+
+    return "${dateTime.day}/${dateTime.month}/${dateTime.year}";
+  }
 
   void _updateReadStatus() async {
     final participantsList = await GetParticipantsUseCase().getParticipants(
@@ -290,9 +314,48 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
         ),
       ),
       appBar: AppBar(
-        title: Text(
-          widget.chatNickname,
-          style: theme.textTheme.titleLarge?.copyWith(fontSize: 14),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.chatNickname,
+              style: theme.textTheme.titleLarge?.copyWith(fontSize: 14),
+            ),
+            if (_otherUserId == null)
+              Text(
+                "Loading",
+                style: theme.textTheme.titleLarge?.copyWith(fontSize: 12),
+              )
+            else
+              StreamBuilder(
+                stream: GetActivityStatusStreamUseCase()
+                    .getActivityStatusStream(userId: _otherUserId!),
+                builder: (context, activityStatusSnapshot) {
+                  if (activityStatusSnapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return Text("Loading");
+                  }
+
+                  if (activityStatusSnapshot.hasError) {
+                    return Text("Error");
+                  }
+
+                  if (!activityStatusSnapshot.hasData) {
+                    return Text("No data found");
+                  }
+
+                  final data = activityStatusSnapshot.data!;
+
+                  return Text(
+                    data.isOnline ? "Online" : _formatDate(data.lastSeen),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontSize: 12,
+                      color: Colors.white.withAlpha(150),
+                    ),
+                  );
+                },
+              ),
+          ],
         ),
         backgroundColor: theme.colorScheme.onSurface,
         leading: IconButton(
