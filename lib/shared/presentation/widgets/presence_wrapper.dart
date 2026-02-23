@@ -14,6 +14,16 @@ class PresenceWrapper extends StatefulWidget {
 
 class _PresenceWrapperState extends State<PresenceWrapper>
     with WidgetsBindingObserver {
+  DateTime _lastSent = DateTime.now();
+
+  void _onUserActivity() {
+    final now = DateTime.now();
+    if (now.difference(_lastSent) > const Duration(seconds: 45)) {
+      _lastSent = now;
+      SetOnlineUseCase().setOnline();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -35,7 +45,6 @@ class _PresenceWrapperState extends State<PresenceWrapper>
     switch (state) {
       case AppLifecycleState.resumed:
         SetOnlineUseCase().setOnline();
-        print("Set online man");
         break;
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
@@ -48,6 +57,11 @@ class _PresenceWrapperState extends State<PresenceWrapper>
 
   @override
   Widget build(BuildContext context) {
-    return widget.child;
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: (_) => _onUserActivity(),
+      onPointerUp: (_) => _onUserActivity(),
+      child: widget.child,
+    );
   }
 }

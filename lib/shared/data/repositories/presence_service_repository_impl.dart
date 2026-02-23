@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dart_either/dart_either.dart';
+import 'package:simple_flutter_chat/core/logger.dart';
 import 'package:simple_flutter_chat/shared/domain/repositories/presence_service_repository.dart';
 import 'package:simple_flutter_chat/shared/domain/repositories/user_repository.dart';
 
@@ -12,21 +14,27 @@ class PresenceServiceRepositoryImpl implements PresenceServiceRepository {
   }) : _firestore = firestore,
        _userRep = userRep;
 
-  Future<Map<String, dynamic>> get getStatus async {
-    final doc = await _firestore
-        .collection("users")
-        .doc(_userRep.currentUser.id)
-        .get();
+  @override
+  Future<Either<String, Map<String, dynamic>>> getStatusByUserId({
+    required String userId,
+  }) async {
+    try {
+      final doc = await _firestore.collection("users").doc(userId).get();
 
-    if (!doc.exists || doc.data()!.isEmpty) {
-      throw Exception("User must be found, but its not or it's empty");
+      if (!doc.exists || doc.data()!.isEmpty) {
+        return Left("User wasn't be found or it's empty");
+      }
+
+      final data = doc.data()!;
+
+      return Right({
+        "isOnline": data["isOnline"],
+        "lastSeenOnline": (data["lastSeenOnline"] as Timestamp).toDate(),
+      });
+    } catch (err, stack) {
+      talker.error(err, stack);
+      return Left("Unexpected presence service error");
     }
-
-    final data = doc.data()!;
-    return {
-      "isOnline": data["isOnline"],
-      "lastSeenOnline": (data["lastSeenOnline"] as Timestamp).toDate(),
-    };
   }
 
   @override
