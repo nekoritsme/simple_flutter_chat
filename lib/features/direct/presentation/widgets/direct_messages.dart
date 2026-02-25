@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:simple_flutter_chat/features/direct/domain/usecases/delete_message_usecase.dart';
 import 'package:simple_flutter_chat/features/direct/domain/usecases/init_messages_stream_usecase.dart';
 import 'package:simple_flutter_chat/features/direct/domain/usecases/load_older_messages_usecase.dart';
@@ -10,6 +11,7 @@ import 'package:vibration/vibration.dart';
 
 import '../../domain/entities/Message.dart';
 import '../../domain/usecases/get_messages_stream_usecase.dart';
+import 'date_separator.dart';
 
 class DirectMessagesWidget extends StatefulWidget {
   const DirectMessagesWidget({
@@ -34,6 +36,31 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
   bool _didInitialAutoScroll = false;
   String? _lastNewestMessageId;
   bool _isLoadingOlder = false;
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  String _formatDateSeparator(DateTime value) {
+    final date = value.toLocal();
+    final now = DateTime.now().toLocal();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(date.year, date.month, date.day);
+    final diffDays = today.difference(target).inDays;
+
+    if (diffDays == 0) return "Today";
+    if (diffDays == 1) return "Yesterday";
+
+    if (diffDays > 1 && diffDays < 7) {
+      return DateFormat("EEEE").format(date);
+    }
+
+    if (date.year == now.year) {
+      return DateFormat("d MMMM").format(date);
+    }
+
+    return DateFormat("dd/MM/yyyy").format(date);
+  }
 
   Stream<dynamic> get _otherUserLastReadStream {
     return FirebaseFirestore.instance
@@ -278,6 +305,15 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
                 final nextChatMessage = index + 1 < loadedMessages.length
                     ? loadedMessages[index + 1]
                     : null;
+                final prevChatMessage = index - 1 >= 0
+                    ? loadedMessages[index - 1]
+                    : null;
+                final localCreatedAtMsg = chatMessage.createdAt.toLocal();
+                final localCreatedAtPrevMsg = prevChatMessage?.createdAt
+                    .toLocal();
+                final separate =
+                    localCreatedAtPrevMsg == null ||
+                    !_isSameDay(localCreatedAtMsg, localCreatedAtPrevMsg);
 
                 final isMe = chatMessage.userId == authenticatedUser!.uid;
 
@@ -312,16 +348,27 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
                         isEdited: isEdited,
                       );
 
-                return GestureDetector(
-                  onLongPressStart: (details) {
-                    _showMessageMenu(
-                      globalPosition: details.globalPosition,
-                      messageId: messageId,
-                      message: chatMessage,
-                      isMe: isMe,
-                    );
-                  },
-                  child: bubble,
+                return Column(
+                  children: [
+                    if (separate)
+                      SizedBox(
+                        height: 30,
+                        child: DateSeparatorWidget(
+                          dateString: _formatDateSeparator(localCreatedAtMsg),
+                        ),
+                      ),
+                    GestureDetector(
+                      onLongPressStart: (details) {
+                        _showMessageMenu(
+                          globalPosition: details.globalPosition,
+                          messageId: messageId,
+                          message: chatMessage,
+                          isMe: isMe,
+                        );
+                      },
+                      child: bubble,
+                    ),
+                  ],
                 );
               },
               separatorBuilder: (BuildContext context, int index) {
