@@ -168,6 +168,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   void _submitMessage() async {
     final enteredMessage = _messageController.text;
     if (enteredMessage.isEmpty) return;
+    if (enteredMessage.trim().isEmpty) return;
     FocusScope.of(context).unfocus();
 
     final submitMessage = await SubmitMessageUseCase().submitMessage(
