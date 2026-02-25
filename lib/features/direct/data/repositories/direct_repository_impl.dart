@@ -161,11 +161,13 @@ class DirectRepositoryImpl implements DirectRepository {
             "lastMessageTimestamp": lastMessageQuery.docs.first.get(
               "createdAt",
             ),
+            "lastMessageSenderId": lastMessageQuery.docs.first.get("userId"),
           });
         } else {
           await _firestore.collection("chats").doc(chatId).update({
             "lastMessage": null,
             "lastMessageTimestamp": null,
+            "lastMessageSenderId": null,
           });
         }
       }

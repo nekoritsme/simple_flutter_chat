@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dart_either/src/dart_either.dart';
+import 'package:dart_either/dart_either.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:simple_flutter_chat/features/chats/domain/repositories/chats_repository.dart';
 
@@ -165,11 +165,17 @@ class ChatsRepositoryImpl implements ChatsRepository {
         await _firebaseFirestore.collection("chats").doc(chatId).update({
           "lastMessage": lastMessageQuery.docs.first.get("text"),
           "lastMessageTimestamp": lastMessageQuery.docs.first.get("createdAt"),
+          "lastMessageSenderId": lastMessageQuery.docs.first.get("userId"),
         });
       } else {
-        await FirebaseFirestore.instance.collection("chats").doc(chatId).update(
-          {"lastMessage": null, "lastMessageTimestamp": null},
-        );
+        await FirebaseFirestore.instance
+            .collection("chats")
+            .doc(chatId)
+            .update({
+              "lastMessage": null,
+              "lastMessageTimestamp": null,
+              "lastMessageSenderId": null,
+            });
       }
     }
   }

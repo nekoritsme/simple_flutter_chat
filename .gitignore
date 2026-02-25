@@ -7,6 +7,8 @@
 .buildlog/
 .history
 
+# my files
+/lib/TODO.txt
 
 
 # Flutter repo-specific

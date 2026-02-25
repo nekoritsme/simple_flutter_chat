@@ -111,12 +111,11 @@ class _ChatListWidgetState extends State<ChatListWidget> {
                 final userData = snapshot.data!;
                 final nickname = userData.nickname ?? "Unknown";
 
-                DateTime? time = loadedChats[index].lastMessageTimestamp;
+                final time = loadedChats[index].lastMessageTimestamp;
                 final lastReadOtherUserTimestamp =
                     loadedChats[index].lastReadTimestamp[otherUser];
 
                 final isRead =
-                    time != null &&
                     lastReadOtherUserTimestamp != null &&
                     lastReadOtherUserTimestamp.isAfter(time);
 
