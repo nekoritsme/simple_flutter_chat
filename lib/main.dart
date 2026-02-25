@@ -6,11 +6,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_flutter_chat/features/auth/presentation/pages/auth_page.dart';
 import 'package:simple_flutter_chat/features/chats/presentation/pages/chats_page.dart';
 import 'package:simple_flutter_chat/firebase_options.dart';
-import 'package:simple_flutter_chat/screens/splash.dart';
 import 'package:simple_flutter_chat/service_locator.dart';
 import 'package:simple_flutter_chat/shared/domain/usecases/start_notification_token_sync_usecase.dart';
 import 'package:simple_flutter_chat/shared/domain/usecases/stop_notification_token_sync_usecase.dart';
 import 'package:simple_flutter_chat/shared/presentation/widgets/presence_wrapper.dart';
+import 'package:simple_flutter_chat/shared/presentation/widgets/splash.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 import 'core/notifications/notification_service.dart';
