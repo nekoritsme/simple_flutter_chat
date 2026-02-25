@@ -19,6 +19,7 @@
             <data android:scheme="mailto" />
         </intent>
     </queries>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:label="simple_flutter_chat"
         android:name="${applicationName}"

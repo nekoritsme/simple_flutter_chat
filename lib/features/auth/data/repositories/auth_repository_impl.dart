@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dart_either/src/dart_either.dart';
+import 'package:dart_either/dart_either.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:simple_flutter_chat/core/logger.dart';
+import 'package:simple_flutter_chat/shared/domain/repositories/notification_token_sync_repository.dart';
 import 'package:simple_flutter_chat/shared/domain/repositories/presence_service_repository.dart';
 
 import '../../domain/repositories/auth_repository.dart';
@@ -10,14 +11,17 @@ class AuthRepositoryImpl implements AuthRepository {
   final FirebaseAuth _firebaseAuth;
   final FirebaseFirestore _firebaseFirestore;
   final PresenceServiceRepository _presenceServiceRepository;
+  final NotificationTokenSyncRepository _notificationTokenSyncRepository;
 
   AuthRepositoryImpl({
     required FirebaseAuth firebaseAuth,
     required FirebaseFirestore firebaseFirestore,
     required PresenceServiceRepository presenceServiceRepository,
+    required NotificationTokenSyncRepository notificationTokenSyncRepository,
   }) : _firebaseAuth = firebaseAuth,
        _firebaseFirestore = firebaseFirestore,
-       _presenceServiceRepository = presenceServiceRepository;
+       _presenceServiceRepository = presenceServiceRepository,
+       _notificationTokenSyncRepository = notificationTokenSyncRepository;
 
   @override
   Future<Either> handleLogin({
@@ -58,7 +62,9 @@ class AuthRepositoryImpl implements AuthRepository {
             "createdAt": Timestamp.now(),
             "isOnline": false,
             "lastSeenOnline": Timestamp.now(),
+            "fcmTokens": [],
           });
+
       talker.info("User has been registered: $userCredentials");
 
       return Right("Success");
@@ -71,6 +77,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> handleLogout() async {
     try {
+      await _notificationTokenSyncRepository.removeCurrentToken();
       await _presenceServiceRepository.setOffline();
     } catch (err, stackTrace) {
       talker.error(err, stackTrace);

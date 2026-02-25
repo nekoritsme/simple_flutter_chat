@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,9 +8,12 @@ import 'package:simple_flutter_chat/features/chats/presentation/pages/chats_page
 import 'package:simple_flutter_chat/firebase_options.dart';
 import 'package:simple_flutter_chat/screens/splash.dart';
 import 'package:simple_flutter_chat/service_locator.dart';
+import 'package:simple_flutter_chat/shared/domain/usecases/start_notification_token_sync_usecase.dart';
+import 'package:simple_flutter_chat/shared/domain/usecases/stop_notification_token_sync_usecase.dart';
 import 'package:simple_flutter_chat/shared/presentation/widgets/presence_wrapper.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
+import 'core/notifications/notification_service.dart';
 import 'core/sources/firebase_sources.dart';
 
 void main() async {
@@ -24,7 +29,9 @@ void main() async {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
-      runApp(ChatApp());
+
+      await sl<NotificationService>().init();
+      runApp(const ChatApp());
     },
     (error, stackTrace) {
       talker.error(error, stackTrace);
@@ -33,8 +40,36 @@ void main() async {
 }
 
 // TODO: Make it clear to clean architecture restrictions, work with usecase
-class ChatApp extends StatelessWidget {
+class ChatApp extends StatefulWidget {
   const ChatApp({super.key});
+
+  @override
+  State<ChatApp> createState() => _ChatAppState();
+}
+
+class _ChatAppState extends State<ChatApp> {
+  StreamSubscription<Object?>? _authSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _authSubscription = sl<FirebaseAuthSource>().instance
+        .authStateChanges()
+        .listen((user) async {
+          if (user != null) {
+            await StartNotificationTokenSyncUseCase().start();
+            return;
+          }
+
+          await StopNotificationTokenSyncUseCase().stop();
+        });
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
