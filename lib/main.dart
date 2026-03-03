@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_flutter_chat/features/auth/presentation/pages/auth_page.dart';
-import 'package:simple_flutter_chat/features/chats/presentation/pages/chats_page.dart';
+import 'package:simple_flutter_chat/features/root/presentation/pages/root_wrapper_page.dart';
 import 'package:simple_flutter_chat/firebase_options.dart';
 import 'package:simple_flutter_chat/service_locator.dart';
 import 'package:simple_flutter_chat/shared/domain/usecases/start_notification_token_sync_usecase.dart';
@@ -83,6 +83,7 @@ class _ChatAppState extends State<ChatApp> {
           onSurface: Color.fromARGB(255, 16, 28, 34),
           onSurfaceVariant: Color.fromARGB(255, 30, 41, 59),
           onTertiary: Color.fromARGB(255, 15, 23, 42),
+          outline: Color.fromARGB(255, 148, 163, 184),
         ),
         textTheme: TextTheme(
           titleLarge: GoogleFonts.plusJakartaSans(
@@ -105,7 +106,7 @@ class _ChatAppState extends State<ChatApp> {
           }
 
           if (snapshot.hasData) {
-            return PresenceWrapper(child: const ChatsScreen());
+            return PresenceWrapper(child: const RootWrapperPage());
           }
 
           return const AuthScreen();
