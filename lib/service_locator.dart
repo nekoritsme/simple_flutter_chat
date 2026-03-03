@@ -3,6 +3,7 @@ import 'package:simple_flutter_chat/core/notifications/notification_service.dart
 import 'package:simple_flutter_chat/core/sources/firebase_sources.dart';
 import 'package:simple_flutter_chat/features/direct/data/repositories/direct_messages_controller_repository_impl.dart';
 import 'package:simple_flutter_chat/features/direct/domain/repositories/direct_messages_controller_repository.dart';
+import 'package:simple_flutter_chat/features/settings/data/repositories/settings_repository_impl.dart';
 import 'package:simple_flutter_chat/shared/data/repositories/notification_token_sync_repository_impl.dart';
 import 'package:simple_flutter_chat/shared/data/repositories/presence_service_repository_impl.dart';
 import 'package:simple_flutter_chat/shared/data/repositories/user_repository_impl.dart';
@@ -16,6 +17,7 @@ import 'features/chats/data/repositories/chats_repository_impl.dart';
 import 'features/chats/domain/repositories/chats_repository.dart';
 import 'features/direct/data/repositories/direct_repository_impl.dart';
 import 'features/direct/domain/repositories/direct_repository.dart';
+import 'features/settings/domain/repositories/settings_repository.dart';
 
 final sl = GetIt.instance;
 
@@ -76,6 +78,8 @@ Future<void> initializeSingletons() async {
       notificationTokenSyncRepository: sl<NotificationTokenSyncRepository>(),
     ),
   );
+
+  sl.registerLazySingleton<SettingsRepository>(() => SettingsRepositoryImpl());
 
   sl.registerLazySingleton<NotificationService>(() => NotificationService());
 }

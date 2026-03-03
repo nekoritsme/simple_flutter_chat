@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:simple_flutter_chat/features/settings/domain/usecases/pick_image_usecase.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -30,12 +31,17 @@ class SettingsPage extends StatelessWidget {
                 Positioned(
                   right: 0,
                   bottom: 0,
-                  child: CircleAvatar(
-                    backgroundColor: theme.colorScheme.onPrimary,
-                    child: Icon(
-                      Icons.camera_alt_outlined,
-                      color: Colors.white,
-                      size: 25,
+                  child: GestureDetector(
+                    onTap: () {
+                      PickImageUseCase().pickImageAndUpload();
+                    },
+                    child: CircleAvatar(
+                      backgroundColor: theme.colorScheme.onPrimary,
+                      child: Icon(
+                        Icons.camera_alt_outlined,
+                        color: Colors.white,
+                        size: 25,
+                      ),
                     ),
                   ),
                 ),

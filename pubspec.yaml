@@ -47,6 +47,8 @@ dependencies:
   dart_either: ^2.0.0
   get_it: ^9.2.0
   firebase_messaging: ^16.1.1
+  image_picker: ^1.2.1
+  firebase_storage: ^13.1.0
 
 dev_dependencies:
   flutter_test:
