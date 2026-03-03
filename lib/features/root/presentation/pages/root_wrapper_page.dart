@@ -10,7 +10,7 @@ class RootWrapperPage extends StatefulWidget {
 }
 
 class _RootWrapperPageState extends State<RootWrapperPage> {
-  int currentPageIndex = 0;
+  int currentPageIndex = 1;
 
   @override
   Widget build(BuildContext context) {
