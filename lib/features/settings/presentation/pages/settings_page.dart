@@ -3,8 +3,27 @@ import 'package:simple_flutter_chat/features/settings/domain/usecases/get_curren
 import 'package:simple_flutter_chat/features/settings/domain/usecases/get_specific_user_stream_usecase.dart';
 import 'package:simple_flutter_chat/features/settings/domain/usecases/pick_image_usecase.dart';
 
-class SettingsPage extends StatelessWidget {
+import '../../../chats/domain/usecases/get_nickname_usecase.dart';
+
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  String? _nickname;
+
+  @override
+  void initState() {
+    GetNicknameUseCase().getNickname().then((nickname) {
+      setState(() {
+        _nickname = nickname;
+      });
+    });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +96,11 @@ class SettingsPage extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 15),
+            Text(
+              "@${_nickname ?? "Unknown"}",
+              style: theme.textTheme.titleLarge,
             ),
           ],
         ),
