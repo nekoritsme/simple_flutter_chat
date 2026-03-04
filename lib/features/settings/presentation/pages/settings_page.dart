@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:simple_flutter_chat/features/settings/domain/usecases/get_current_user_usecase.dart';
 import 'package:simple_flutter_chat/features/settings/domain/usecases/get_specific_user_stream_usecase.dart';
 import 'package:simple_flutter_chat/features/settings/domain/usecases/pick_image_usecase.dart';
+import 'package:simple_flutter_chat/gallery/presentation/pages/gallery_page.dart';
 
 import '../../../chats/domain/usecases/get_nickname_usecase.dart';
 
@@ -70,9 +71,23 @@ class _SettingsPageState extends State<SettingsPage> {
 
                       final userData = snapshot.data!;
 
-                      return CircleAvatar(
-                        backgroundImage: NetworkImage(
-                          userData.profilePictureUrl!,
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => GalleryPage(
+                                imageProvider: NetworkImage(
+                                  userData.profilePictureUrl!,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                        child: CircleAvatar(
+                          backgroundImage: NetworkImage(
+                            userData.profilePictureUrl!,
+                          ),
                         ),
                       );
                     },
