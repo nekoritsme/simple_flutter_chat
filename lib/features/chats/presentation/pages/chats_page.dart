@@ -2,8 +2,10 @@ import 'package:dart_either/dart_either.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_flutter_chat/features/chats/domain/usecases/add_chat_usecase.dart';
 import 'package:simple_flutter_chat/features/chats/domain/usecases/get_nickname_usecase.dart';
+import 'package:simple_flutter_chat/features/chats/domain/usecases/get_specific_user_stream_usecase.dart';
 import 'package:simple_flutter_chat/features/chats/domain/usecases/sign_out_usecase.dart';
 
+import '../../../direct/domain/usecases/get_current_user_usecase.dart';
 import '../widgets/add_chat.dart';
 import '../widgets/chat_list.dart';
 
@@ -67,10 +69,36 @@ class _ChatsScreenState extends State<ChatsScreen> {
           child: SizedBox(
             width: 10,
             height: 10,
-            child: CircleAvatar(
-              backgroundImage: AssetImage(
-                "assets/images/profile-picture-holder.jpg",
+            child: StreamBuilder(
+              stream: GetSpecificUserStreamUseCase().getSpecificUserStream(
+                uid: GetCurrentUserUseCase().getUser().id,
               ),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting ||
+                    snapshot.hasError ||
+                    !snapshot.hasData ||
+                    snapshot.data == null) {
+                  return const CircleAvatar(
+                    backgroundImage: AssetImage(
+                      "assets/images/profile-picture-holder.jpg",
+                    ),
+                  );
+                }
+
+                if (snapshot.data!.profilePictureUrl == null) {
+                  return const CircleAvatar(
+                    backgroundImage: AssetImage(
+                      "assets/images/profile-picture-holder.jpg",
+                    ),
+                  );
+                }
+
+                final userData = snapshot.data!;
+
+                return CircleAvatar(
+                  backgroundImage: NetworkImage(userData.profilePictureUrl!),
+                );
+              },
             ),
           ),
         ),

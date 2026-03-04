@@ -47,9 +47,11 @@ class UserRepositoryImpl implements UserRepository {
       if (data == null) {
         throw Exception("User document not found");
       }
+
       return UserEntity(
         id: documentSnapshot.id,
         nickname: data["nickname"] ?? "",
+        profilePictureUrl: data["profileUrl"],
       );
     });
   }

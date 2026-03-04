@@ -13,6 +13,7 @@ class ChatItemWidget extends StatelessWidget {
     required this.chatId,
     this.isMe,
     this.isRead,
+    this.profileUrl,
   });
 
   final String chatNickname;
@@ -20,6 +21,7 @@ class ChatItemWidget extends StatelessWidget {
   final DateTime? lastMessageTimestamp;
   final int unreadCount;
   final String chatId;
+  final String? profileUrl;
   final bool? isRead;
   final bool? isMe;
 
@@ -146,11 +148,13 @@ class ChatItemWidget extends StatelessWidget {
               ),
           ],
         ),
-        leading: CircleAvatar(
-          backgroundImage: AssetImage(
-            "assets/images/profile-picture-holder.jpg",
-          ),
-        ),
+        leading: profileUrl != null
+            ? CircleAvatar(backgroundImage: NetworkImage(profileUrl!))
+            : CircleAvatar(
+                backgroundImage: AssetImage(
+                  "assets/images/profile-picture-holder.jpg",
+                ),
+              ),
       ),
     );
   }

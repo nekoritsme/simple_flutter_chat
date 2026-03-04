@@ -144,6 +144,7 @@ class _ChatListWidgetState extends State<ChatListWidget> {
                       chatId: loadedChats[index].id,
                       isRead: isRead,
                       isMe: isMe,
+                      profileUrl: userData.profilePictureUrl,
                     );
                   },
                 );
