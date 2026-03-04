@@ -64,6 +64,9 @@ class DirectMessagesControllerRepositoryImpl
 
       for (final doc in docs) {
         final parsed = doc.data();
+
+        final String? profileUrl = parsed["profileUrl"];
+
         _insertIfMissing(
           Message(
             createdAt: (parsed["createdAt"] as Timestamp).toDate(),
@@ -72,6 +75,7 @@ class DirectMessagesControllerRepositoryImpl
             userId: parsed["userId"],
             messageId: doc.id,
             editedAt: (parsed["editedAt"] as Timestamp?)?.toDate(),
+            profileUrl: profileUrl,
           ),
         );
       }
@@ -121,6 +125,8 @@ class DirectMessagesControllerRepositoryImpl
               createdAt = DateTime.now();
             }
 
+            final String? profileUrl = parsed["profileUrl"];
+
             final msg = Message(
               createdAt: createdAt,
               nickname: parsed["nickname"],
@@ -128,6 +134,7 @@ class DirectMessagesControllerRepositoryImpl
               userId: parsed["userId"],
               messageId: change.doc.id,
               editedAt: (parsed["editedAt"] as Timestamp?)?.toDate(),
+              profileUrl: profileUrl,
             );
 
             switch (change.type) {
@@ -165,6 +172,9 @@ class DirectMessagesControllerRepositoryImpl
         final createdAt = createdAtRaw is Timestamp
             ? createdAtRaw.toDate()
             : DateTime.now();
+
+        final String? profileUrl = data["profileUrl"];
+
         return Message(
           createdAt: createdAt,
           nickname: data["nickname"],
@@ -172,6 +182,7 @@ class DirectMessagesControllerRepositoryImpl
           userId: data["userId"],
           messageId: message.id,
           editedAt: (data["editedAt"] as Timestamp?)?.toDate(),
+          profileUrl: profileUrl,
         );
       }).toList(),
     );

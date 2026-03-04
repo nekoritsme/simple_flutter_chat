@@ -66,6 +66,8 @@ class DirectRepositoryImpl implements DirectRepository {
           if (snapshot.docs.isNotEmpty) {
             final messageData = snapshot.docs.first.data();
 
+            final String? profileUrl = messageData["profileUrl"];
+
             return Message(
               createdAt:
                   (messageData["createdAt"] as Timestamp).toDateTime ??
@@ -75,6 +77,7 @@ class DirectRepositoryImpl implements DirectRepository {
               userId: messageData["userId"] ?? "Error id",
               messageId: "Message id", // doesn't matter ig
               editedAt: messageData["editedAt"],
+              profileUrl: profileUrl,
             );
           }
 
@@ -93,11 +96,14 @@ class DirectRepositoryImpl implements DirectRepository {
           .doc(_userRepo.currentUser.id)
           .get();
 
+      final String? profileUrl = userData.data()!["profileUrl"];
+
       await _firestore.collection("chats/$chatId/messages").add({
         "text": message,
         "createdAt": FieldValue.serverTimestamp(),
         "userId": _userRepo.currentUser.id,
         "nickname": userData.data()!["nickname"],
+        "profileUrl": profileUrl,
       });
 
       return Right("Success");

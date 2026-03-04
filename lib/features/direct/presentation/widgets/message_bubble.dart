@@ -3,16 +3,17 @@ import 'package:link_text/link_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MessageBubble extends StatelessWidget {
-  const MessageBubble.first({
+  MessageBubble.first({
     super.key,
     required this.message,
     required this.isMe,
     required this.createdAt,
     required this.isRead,
     this.isEdited,
+    this.profileUrl,
   }) : isFirstInSequence = true;
 
-  const MessageBubble.next({
+  MessageBubble.next({
     super.key,
     required this.message,
     required this.isMe,
@@ -25,6 +26,7 @@ class MessageBubble extends StatelessWidget {
   final String message;
   final bool isMe;
   final DateTime createdAt;
+  String? profileUrl;
   final bool isRead;
   final bool? isEdited;
 
@@ -46,11 +48,13 @@ class MessageBubble extends StatelessWidget {
           Positioned(
             bottom: 0,
             right: isMe ? 0 : null,
-            child: CircleAvatar(
-              backgroundImage: AssetImage(
-                "assets/images/profile-picture-holder.jpg",
-              ),
-            ),
+            child: profileUrl != null
+                ? CircleAvatar(backgroundImage: NetworkImage(profileUrl!))
+                : CircleAvatar(
+                    backgroundImage: AssetImage(
+                      "assets/images/profile-picture-holder.jpg",
+                    ),
+                  ),
           ),
         Padding(
           padding: EdgeInsets.only(right: isMe ? 30 : 0, left: !isMe ? 30 : 0),

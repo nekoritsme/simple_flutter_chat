@@ -346,6 +346,7 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
                         createdAt: createdAt,
                         isRead: isRead,
                         isEdited: isEdited,
+                        profileUrl: chatMessage.profileUrl,
                       );
 
                 return Column(
