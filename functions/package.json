@@ -7,7 +7,8 @@
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "backfill:message-profile-url": "node scripts/backfill_message_profile_url.js"
   },
   "engines": {
     "node": "22"
