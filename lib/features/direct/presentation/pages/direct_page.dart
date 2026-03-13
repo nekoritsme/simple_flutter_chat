@@ -13,7 +13,7 @@ import '../../domain/usecases/get_activity_status_stream_usecase.dart';
 import '../../domain/usecases/update_lastmessage_usecase.dart';
 import '../../domain/usecases/update_lastreadtimestamp_usecase.dart';
 
-enum EditMode { message, edit }
+enum EditMode { message, edit, reply }
 
 class DirectMessagesScreen extends StatefulWidget {
   const DirectMessagesScreen({
@@ -38,6 +38,8 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   late List<String> _participants;
   String? _otherUserId;
   String? _editMessageId;
+  String? _replyMessageId;
+  String? _replyMessage;
 
   String _formatDate(DateTime dateTime) {
     final now = DateTime.now();
@@ -99,6 +101,14 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
             _updateReadStatus();
           }
         });
+  }
+
+  void _onReplyMessage({required String messageId, required String message}) {
+    setState(() {
+      _editMode = EditMode.reply;
+      _replyMessageId = messageId;
+      _replyMessage = message;
+    });
   }
 
   void _editMessage({required String messageId, required Message message}) {
@@ -174,6 +184,8 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
     final submitMessage = await SubmitMessageUseCase().submitMessage(
       chatId: widget.chatId,
       message: enteredMessage,
+      replyMessageId: _replyMessageId,
+      replyMessage: _replyMessage,
     );
 
     submitMessage.fold(
@@ -234,6 +246,61 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
                         onPressed: () {
                           setState(() {
                             _editMode = EditMode.message;
+                          });
+                        },
+                        icon: Icon(
+                          Icons.close_rounded,
+                          color: theme.textTheme.bodyMedium!.color,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              if (_editMode == EditMode.reply)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  height: 50,
+                  color: theme.colorScheme.onTertiary.withAlpha(240),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.reply, color: theme.colorScheme.primary),
+                          SizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    "Replaying to ${widget.chatNickname}",
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                width: 250,
+                                child: Text(
+                                  _replyMessage ?? "failed",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _editMode = EditMode.message;
+                            _replyMessageId = null;
+                            _replyMessage = null;
                           });
                         },
                         icon: Icon(
@@ -376,6 +443,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
               chatId: widget.chatId,
               editMessage: _editMessage,
               otherUserId: _otherUserId ?? "",
+              onReplyMessage: _onReplyMessage,
             ),
           ),
           const SizedBox(height: 120),

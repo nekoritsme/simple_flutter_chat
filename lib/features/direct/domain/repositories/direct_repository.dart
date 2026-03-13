@@ -13,6 +13,8 @@ abstract interface class DirectRepository {
   Future<Either<String, String>> submitMessage({
     required String chatId,
     required String message,
+    required String? replyMessageId,
+    required String? replyMessage,
   });
   Future<Either<String, String>> editMessage({
     required String chatId,

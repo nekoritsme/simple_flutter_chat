@@ -7,10 +7,14 @@ class SubmitMessageUseCase {
   Future<Either<String, String>> submitMessage({
     required String chatId,
     required String message,
+    required String? replyMessageId,
+    required String? replyMessage,
   }) async {
     return await sl<DirectRepository>().submitMessage(
       chatId: chatId,
       message: message,
+      replyMessageId: replyMessageId,
+      replyMessage: replyMessage,
     );
   }
 }

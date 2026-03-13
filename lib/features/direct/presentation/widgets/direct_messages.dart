@@ -19,10 +19,14 @@ class DirectMessagesWidget extends StatefulWidget {
     required this.chatId,
     required this.editMessage,
     required this.otherUserId,
+    required this.onReplyMessage,
   });
 
   final Function({required String messageId, required Message message})
   editMessage;
+
+  final Function({required String messageId, required String message})
+  onReplyMessage;
 
   final String chatId;
   final String otherUserId;
@@ -358,17 +362,40 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
                           dateString: _formatDateSeparator(localCreatedAtMsg),
                         ),
                       ),
-                    GestureDetector(
-                      onLongPressStart: (details) {
-                        _showMessageMenu(
-                          globalPosition: details.globalPosition,
-                          messageId: messageId,
-                          message: chatMessage,
-                          isMe: isMe,
-                        );
-                      },
-                      child: bubble,
-                    ),
+                    if (!isMe)
+                      Dismissible(
+                        key: ValueKey(messageId),
+                        confirmDismiss: (direction) async {
+                          widget.onReplyMessage(
+                            message: messageText,
+                            messageId: messageId,
+                          );
+                          return false;
+                        },
+                        child: GestureDetector(
+                          onLongPressStart: (details) {
+                            _showMessageMenu(
+                              globalPosition: details.globalPosition,
+                              messageId: messageId,
+                              message: chatMessage,
+                              isMe: isMe,
+                            );
+                          },
+                          child: bubble,
+                        ),
+                      ),
+                    if (isMe)
+                      GestureDetector(
+                        onLongPressStart: (details) {
+                          _showMessageMenu(
+                            globalPosition: details.globalPosition,
+                            messageId: messageId,
+                            message: chatMessage,
+                            isMe: isMe,
+                          );
+                        },
+                        child: bubble,
+                      ),
                   ],
                 );
               },

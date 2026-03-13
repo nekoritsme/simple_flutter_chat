@@ -89,6 +89,8 @@ class DirectRepositoryImpl implements DirectRepository {
   Future<Either<String, String>> submitMessage({
     required String chatId,
     required String message,
+    required String? replyMessageId,
+    required String? replyMessage,
   }) async {
     try {
       final userData = await _firestore
@@ -104,6 +106,8 @@ class DirectRepositoryImpl implements DirectRepository {
         "userId": _userRepo.currentUser.id,
         "nickname": userData.data()!["nickname"],
         "profileUrl": profileUrl,
+        "replyMessageId": replyMessageId,
+        "replyMessage": replyMessage,
       });
 
       return Right("Success");
