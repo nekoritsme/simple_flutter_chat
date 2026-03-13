@@ -6,4 +6,5 @@ abstract interface class DirectMessagesControllerRepository {
   Future<void> init({required String chatId});
   Future<void> loadInitialPage();
   Future<void> loadNextPage();
+  String findByMessageIdAndReturnNickname({required String messageId});
 }

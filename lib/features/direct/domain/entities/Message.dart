@@ -7,6 +7,8 @@ class Message {
     required this.messageId,
     required this.editedAt,
     this.profileUrl,
+    this.replyMessageId,
+    this.replyMessage,
   });
 
   final DateTime createdAt;
@@ -16,4 +18,6 @@ class Message {
   final String messageId;
   final DateTime? editedAt;
   String? profileUrl;
+  String? replyMessageId;
+  String? replyMessage;
 }

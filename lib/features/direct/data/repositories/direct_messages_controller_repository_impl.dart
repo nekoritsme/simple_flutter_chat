@@ -76,6 +76,8 @@ class DirectMessagesControllerRepositoryImpl
             messageId: doc.id,
             editedAt: (parsed["editedAt"] as Timestamp?)?.toDate(),
             profileUrl: profileUrl,
+            replyMessageId: parsed["replyMessageId"],
+            replyMessage: parsed["replyMessage"],
           ),
         );
       }
@@ -135,6 +137,8 @@ class DirectMessagesControllerRepositoryImpl
               messageId: change.doc.id,
               editedAt: (parsed["editedAt"] as Timestamp?)?.toDate(),
               profileUrl: profileUrl,
+              replyMessageId: parsed["replyMessageId"],
+              replyMessage: parsed["replyMessage"],
             );
 
             switch (change.type) {
@@ -183,6 +187,8 @@ class DirectMessagesControllerRepositoryImpl
           messageId: message.id,
           editedAt: (data["editedAt"] as Timestamp?)?.toDate(),
           profileUrl: profileUrl,
+          replyMessageId: data["replyMessageId"],
+          replyMessage: data["replyMessage"],
         );
       }).toList(),
     );
@@ -200,5 +206,12 @@ class DirectMessagesControllerRepositoryImpl
     _messages.clear();
 
     await loadInitialPage();
+  }
+
+  @override
+  String findByMessageIdAndReturnNickname({required String messageId}) {
+    final message = _messages.firstWhere((msg) => msg.messageId == messageId);
+
+    return message.nickname;
   }
 }

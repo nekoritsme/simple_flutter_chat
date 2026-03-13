@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:simple_flutter_chat/features/direct/domain/entities/Message.dart';
 import 'package:simple_flutter_chat/features/direct/domain/usecases/edit_message_usecase.dart';
+import 'package:simple_flutter_chat/features/direct/domain/usecases/find_messageId_return_nickname_usecase.dart';
 import 'package:simple_flutter_chat/features/direct/domain/usecases/get_current_user_usecase.dart';
 import 'package:simple_flutter_chat/features/direct/domain/usecases/get_lastmessage_stream_usecase.dart';
 import 'package:simple_flutter_chat/features/direct/domain/usecases/get_participants_usecase.dart';
@@ -40,6 +41,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   String? _editMessageId;
   String? _replyMessageId;
   String? _replyMessage;
+  String? _replyTo;
 
   String _formatDate(DateTime dateTime) {
     final now = DateTime.now();
@@ -108,6 +110,9 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
       _editMode = EditMode.reply;
       _replyMessageId = messageId;
       _replyMessage = message;
+      _replyTo = FindMessageIdReturnNicknameUseCase().call(
+        messageId: messageId,
+      );
     });
   }
 
@@ -177,6 +182,12 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
 
   void _submitMessage() async {
     final enteredMessage = _messageController.text;
+
+    if (_editMode == EditMode.reply) {
+      setState(() {
+        _editMode = EditMode.message;
+      });
+    }
     if (enteredMessage.isEmpty) return;
     if (enteredMessage.trim().isEmpty) return;
     FocusScope.of(context).unfocus();
@@ -274,7 +285,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
                               Row(
                                 children: [
                                   Text(
-                                    "Replaying to ${widget.chatNickname}",
+                                    "Replaying to $_replyTo",
                                     style: theme.textTheme.bodyMedium?.copyWith(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
@@ -358,7 +369,8 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
                           shape: CircleBorder(),
                           backgroundColor: theme.colorScheme.primary,
                           onPressed: () {
-                            if (_editMode == EditMode.message) {
+                            if (_editMode == EditMode.message ||
+                                _editMode == EditMode.reply) {
                               return _submitMessage();
                             }
                             if (_editMode == EditMode.edit) {
@@ -444,6 +456,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
               editMessage: _editMessage,
               otherUserId: _otherUserId ?? "",
               onReplyMessage: _onReplyMessage,
+              otherUserNickname: widget.chatNickname,
             ),
           ),
           const SizedBox(height: 120),

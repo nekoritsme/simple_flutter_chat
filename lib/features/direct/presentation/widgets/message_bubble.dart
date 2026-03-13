@@ -11,6 +11,8 @@ class MessageBubble extends StatelessWidget {
     required this.isRead,
     this.isEdited,
     this.profileUrl,
+    required this.replyMessage,
+    required this.replyTo,
   }) : isFirstInSequence = true;
 
   MessageBubble.next({
@@ -20,6 +22,8 @@ class MessageBubble extends StatelessWidget {
     required this.createdAt,
     required this.isRead,
     this.isEdited,
+    required this.replyMessage,
+    required this.replyTo,
   }) : isFirstInSequence = false;
 
   final bool isFirstInSequence;
@@ -29,6 +33,8 @@ class MessageBubble extends StatelessWidget {
   String? profileUrl;
   final bool isRead;
   final bool? isEdited;
+  final String? replyMessage;
+  final String? replyTo;
 
   String _formatMessageTime(DateTime date) {
     final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
@@ -98,18 +104,60 @@ class MessageBubble extends StatelessWidget {
                     ),
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     child: Container(
-                      padding: EdgeInsets.all(20),
-                      child: LinkText(
-                        message,
-                        textStyle: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white,
+                      padding: EdgeInsets.all(15),
+                      child: IntrinsicWidth(
+                        child: Column(
+                          crossAxisAlignment: isMe
+                              ? CrossAxisAlignment.end
+                              : CrossAxisAlignment.start,
+                          children: [
+                            if (replyMessage != null)
+                              Container(
+                                width: double.infinity,
+                                padding: EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withAlpha(50),
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border(
+                                    left: BorderSide(
+                                      color: Colors.white.withAlpha(150),
+                                      width: 3,
+                                    ),
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      replyTo ?? "Failed",
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                    ),
+                                    Text(
+                                      replyMessage ?? "Failed to load",
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            LinkText(
+                              message,
+                              textStyle: theme.textTheme.bodyMedium?.copyWith(
+                                color: Colors.white,
+                              ),
+                              linkStyle: theme.textTheme.bodyMedium?.copyWith(
+                                color: Colors.blue,
+                              ),
+                              onLinkTap: (url) {
+                                launchUrl(Uri.parse(url));
+                              },
+                            ),
+                          ],
                         ),
-                        linkStyle: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.blue,
-                        ),
-                        onLinkTap: (url) {
-                          launchUrl(Uri.parse(url));
-                        },
                       ),
                     ),
                   ),

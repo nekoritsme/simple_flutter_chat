@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:simple_flutter_chat/features/direct/domain/usecases/delete_message_usecase.dart';
+import 'package:simple_flutter_chat/features/direct/domain/usecases/find_messageId_return_nickname_usecase.dart';
 import 'package:simple_flutter_chat/features/direct/domain/usecases/init_messages_stream_usecase.dart';
 import 'package:simple_flutter_chat/features/direct/domain/usecases/load_older_messages_usecase.dart';
 import 'package:simple_flutter_chat/features/direct/presentation/widgets/message_bubble.dart';
@@ -20,6 +21,7 @@ class DirectMessagesWidget extends StatefulWidget {
     required this.editMessage,
     required this.otherUserId,
     required this.onReplyMessage,
+    required this.otherUserNickname,
   });
 
   final Function({required String messageId, required Message message})
@@ -30,6 +32,7 @@ class DirectMessagesWidget extends StatefulWidget {
 
   final String chatId;
   final String otherUserId;
+  final String otherUserNickname;
 
   @override
   State<DirectMessagesWidget> createState() => _DirectMessagesWidgetState();
@@ -324,6 +327,17 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
                 final currentUserId = chatMessage.userId;
                 final nextUserId = nextChatMessage?.userId;
 
+                String? replyTo;
+                if (chatMessage.replyMessageId != null) {
+                  replyTo =
+                      FindMessageIdReturnNicknameUseCase().call(
+                            messageId: chatMessage.replyMessageId!,
+                          ) ==
+                          widget.otherUserNickname
+                      ? widget.otherUserNickname
+                      : "You";
+                }
+
                 final messageText = (chatMessage.text).toString();
                 final isNextBySameUser = currentUserId == nextUserId;
 
@@ -343,6 +357,8 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
                         createdAt: createdAt,
                         isRead: isRead,
                         isEdited: isEdited,
+                        replyMessage: chatMessage.replyMessage,
+                        replyTo: replyTo,
                       )
                     : MessageBubble.first(
                         message: messageText,
@@ -351,6 +367,8 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
                         isRead: isRead,
                         isEdited: isEdited,
                         profileUrl: chatMessage.profileUrl,
+                        replyMessage: chatMessage.replyMessage,
+                        replyTo: replyTo,
                       );
 
                 return Column(
@@ -362,30 +380,16 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
                           dateString: _formatDateSeparator(localCreatedAtMsg),
                         ),
                       ),
-                    if (!isMe)
-                      Dismissible(
-                        key: ValueKey(messageId),
-                        confirmDismiss: (direction) async {
-                          widget.onReplyMessage(
-                            message: messageText,
-                            messageId: messageId,
-                          );
-                          return false;
-                        },
-                        child: GestureDetector(
-                          onLongPressStart: (details) {
-                            _showMessageMenu(
-                              globalPosition: details.globalPosition,
-                              messageId: messageId,
-                              message: chatMessage,
-                              isMe: isMe,
-                            );
-                          },
-                          child: bubble,
-                        ),
-                      ),
-                    if (isMe)
-                      GestureDetector(
+                    Dismissible(
+                      key: ValueKey(messageId),
+                      confirmDismiss: (direction) async {
+                        widget.onReplyMessage(
+                          message: messageText,
+                          messageId: messageId,
+                        );
+                        return false;
+                      },
+                      child: GestureDetector(
                         onLongPressStart: (details) {
                           _showMessageMenu(
                             globalPosition: details.globalPosition,
@@ -396,6 +400,7 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
                         },
                         child: bubble,
                       ),
+                    ),
                   ],
                 );
               },
