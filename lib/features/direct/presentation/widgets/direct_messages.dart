@@ -359,6 +359,7 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
                         isEdited: isEdited,
                         replyMessage: chatMessage.replyMessage,
                         replyTo: replyTo,
+                        imageDownloadUrl: chatMessage.imageDownloadUrl,
                       )
                     : MessageBubble.first(
                         message: messageText,
@@ -369,6 +370,7 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
                         profileUrl: chatMessage.profileUrl,
                         replyMessage: chatMessage.replyMessage,
                         replyTo: replyTo,
+                        imageDownloadUrl: chatMessage.imageDownloadUrl,
                       );
 
                 return Column(

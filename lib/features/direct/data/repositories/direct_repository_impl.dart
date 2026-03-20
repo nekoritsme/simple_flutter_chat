@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dart_either/dart_either.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:simple_flutter_chat/core/extensions/timestamp_extensions.dart';
 import 'package:simple_flutter_chat/core/logger.dart';
 import 'package:simple_flutter_chat/shared/domain/repositories/user_repository.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/Message.dart';
 import '../../domain/repositories/direct_repository.dart';
@@ -10,12 +15,15 @@ import '../../domain/repositories/direct_repository.dart';
 class DirectRepositoryImpl implements DirectRepository {
   final FirebaseFirestore _firestore;
   final UserRepository _userRepo;
+  final FirebaseStorage _firebaseStorage;
 
   DirectRepositoryImpl({
     required FirebaseFirestore firestore,
     required UserRepository userRepo,
+    required FirebaseStorage firebaseStorage,
   }) : _firestore = firestore,
-       _userRepo = userRepo;
+       _userRepo = userRepo,
+       _firebaseStorage = firebaseStorage;
 
   @override
   Future<Either<String, List<String>>> getParticipants({
@@ -186,6 +194,58 @@ class DirectRepositoryImpl implements DirectRepository {
     } catch (err, stack) {
       talker.error(err, stack);
       return Left("Failure");
+    }
+  }
+
+  @override
+  Future<Either<String, String>> sendImage({
+    required String chatId,
+    required String? replyMessageId,
+    required String? replyMessage,
+  }) async {
+    final pickedImage = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+
+    if (pickedImage == null) {
+      return Left("No image selected");
+    }
+
+    final uuid = Uuid();
+
+    final storageImage = _firebaseStorage
+        .ref()
+        .child(chatId)
+        .child("${uuid.v4()}.jpg");
+
+    await storageImage.putFile(File(pickedImage.path));
+    final downloadUrl = await storageImage.getDownloadURL();
+
+    talker.info(downloadUrl);
+    try {
+      final userData = await _firestore
+          .collection("users")
+          .doc(_userRepo.currentUser.id)
+          .get();
+
+      final String? profileUrl = userData.data()!["profileUrl"];
+
+      await _firestore.collection("chats/$chatId/messages").add({
+        "text": "",
+        "createdAt": FieldValue.serverTimestamp(),
+        "userId": _userRepo.currentUser.id,
+        "nickname": userData.data()!["nickname"],
+        "profileUrl": profileUrl,
+        "replyMessageId": replyMessageId,
+        "replyMessage": replyMessage,
+        "imageDownloadUrl": downloadUrl,
+      });
+
+      return Right("Success");
+    } catch (err, stack) {
+      talker.error(err, stack);
+      return Left("Failure while submitting message");
     }
   }
 }

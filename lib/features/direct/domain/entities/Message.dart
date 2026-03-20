@@ -9,6 +9,7 @@ class Message {
     this.profileUrl,
     this.replyMessageId,
     this.replyMessage,
+    this.imageDownloadUrl,
   });
 
   final DateTime createdAt;
@@ -20,4 +21,5 @@ class Message {
   String? profileUrl;
   String? replyMessageId;
   String? replyMessage;
+  String? imageDownloadUrl;
 }

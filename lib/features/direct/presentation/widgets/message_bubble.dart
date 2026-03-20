@@ -1,5 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:link_text/link_text.dart';
+import 'package:simple_flutter_chat/features/gallery/presentation/pages/gallery_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -13,6 +15,7 @@ class MessageBubble extends StatelessWidget {
     this.profileUrl,
     required this.replyMessage,
     required this.replyTo,
+    this.imageDownloadUrl,
   }) : isFirstInSequence = true;
 
   MessageBubble.next({
@@ -24,6 +27,7 @@ class MessageBubble extends StatelessWidget {
     this.isEdited,
     required this.replyMessage,
     required this.replyTo,
+    this.imageDownloadUrl,
   }) : isFirstInSequence = false;
 
   final bool isFirstInSequence;
@@ -35,6 +39,7 @@ class MessageBubble extends StatelessWidget {
   final bool? isEdited;
   final String? replyMessage;
   final String? replyTo;
+  final String? imageDownloadUrl;
 
   String _formatMessageTime(DateTime date) {
     final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
@@ -144,18 +149,46 @@ class MessageBubble extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                            LinkText(
-                              message,
-                              textStyle: theme.textTheme.bodyMedium?.copyWith(
-                                color: Colors.white,
+                            if (imageDownloadUrl == null)
+                              LinkText(
+                                message,
+                                textStyle: theme.textTheme.bodyMedium?.copyWith(
+                                  color: Colors.white,
+                                ),
+                                linkStyle: theme.textTheme.bodyMedium?.copyWith(
+                                  color: Colors.blue,
+                                ),
+                                onLinkTap: (url) {
+                                  launchUrl(Uri.parse(url));
+                                },
                               ),
-                              linkStyle: theme.textTheme.bodyMedium?.copyWith(
-                                color: Colors.blue,
+                            if (imageDownloadUrl != null)
+                              Padding(
+                                padding: replyTo != null
+                                    ? const EdgeInsets.only(top: 10)
+                                    : const EdgeInsets.only(top: 0),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => GalleryPage(
+                                          imageProvider: NetworkImage(
+                                            imageDownloadUrl!,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: CachedNetworkImage(
+                                    imageUrl: imageDownloadUrl!,
+                                    placeholder: (context, url) =>
+                                        CircularProgressIndicator(),
+                                    errorWidget: (context, url, error) =>
+                                        Icon(Icons.error),
+                                  ),
+                                ),
                               ),
-                              onLinkTap: (url) {
-                                launchUrl(Uri.parse(url));
-                              },
-                            ),
                           ],
                         ),
                       ),

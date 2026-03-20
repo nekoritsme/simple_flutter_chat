@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:simple_flutter_chat/features/settings/domain/usecases/get_current_user_usecase.dart';
 import 'package:simple_flutter_chat/features/settings/domain/usecases/get_specific_user_stream_usecase.dart';
 import 'package:simple_flutter_chat/features/settings/domain/usecases/pick_image_usecase.dart';
-import 'package:simple_flutter_chat/gallery/presentation/pages/gallery_page.dart';
 
 import '../../../chats/domain/usecases/get_nickname_usecase.dart';
+import '../../../gallery/presentation/pages/gallery_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});

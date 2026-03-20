@@ -7,6 +7,7 @@ import 'package:simple_flutter_chat/features/direct/domain/usecases/find_message
 import 'package:simple_flutter_chat/features/direct/domain/usecases/get_current_user_usecase.dart';
 import 'package:simple_flutter_chat/features/direct/domain/usecases/get_lastmessage_stream_usecase.dart';
 import 'package:simple_flutter_chat/features/direct/domain/usecases/get_participants_usecase.dart';
+import 'package:simple_flutter_chat/features/direct/domain/usecases/send_image_usecase.dart';
 import 'package:simple_flutter_chat/features/direct/domain/usecases/submit_message_usecase.dart';
 import 'package:simple_flutter_chat/features/direct/presentation/widgets/direct_messages.dart';
 
@@ -92,6 +93,14 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
 
     UpdateLastReadTimestampUseCase().updateLastReadTimestamp(
       chatId: widget.chatId,
+    );
+  }
+
+  void _sendImage() {
+    SendImageUseCase().call(
+      chatId: widget.chatId,
+      replyMessageId: _replyMessageId,
+      replyMessage: _replyMessage,
     );
   }
 
@@ -329,9 +338,19 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16),
+                        child: CircleAvatar(
+                          backgroundColor: theme.colorScheme.onSurfaceVariant,
+                          child: IconButton(
+                            onPressed: _sendImage,
+                            icon: Icon(Icons.add),
+                          ),
+                        ),
+                      ),
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.only(left: 16),
+                          padding: const EdgeInsets.only(left: 8),
                           child: TextField(
                             controller: _messageController,
                             style: theme.textTheme.bodyMedium,

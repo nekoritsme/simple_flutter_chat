@@ -46,6 +46,7 @@ Future<void> initializeSingletons() async {
     () => DirectRepositoryImpl(
       firestore: sl<FirebaseFirestoreSource>().instance,
       userRepo: sl<UserRepository>(),
+      firebaseStorage: sl<FirebaseStorageSource>().instance,
     ),
   );
 

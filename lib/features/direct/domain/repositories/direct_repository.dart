@@ -25,4 +25,9 @@ abstract interface class DirectRepository {
     required String chatId,
     required String messageId,
   });
+  Future<Either<String, String>> sendImage({
+    required String chatId,
+    required String? replyMessageId,
+    required String? replyMessage,
+  });
 }

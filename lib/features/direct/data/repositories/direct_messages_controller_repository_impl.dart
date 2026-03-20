@@ -78,6 +78,7 @@ class DirectMessagesControllerRepositoryImpl
             profileUrl: profileUrl,
             replyMessageId: parsed["replyMessageId"],
             replyMessage: parsed["replyMessage"],
+            imageDownloadUrl: parsed["imageDownloadUrl"],
           ),
         );
       }
@@ -139,6 +140,7 @@ class DirectMessagesControllerRepositoryImpl
               profileUrl: profileUrl,
               replyMessageId: parsed["replyMessageId"],
               replyMessage: parsed["replyMessage"],
+              imageDownloadUrl: parsed["imageDownloadUrl"],
             );
 
             switch (change.type) {
@@ -189,6 +191,7 @@ class DirectMessagesControllerRepositoryImpl
           profileUrl: profileUrl,
           replyMessageId: data["replyMessageId"],
           replyMessage: data["replyMessage"],
+          imageDownloadUrl: data["imageDownloadUrl"],
         );
       }).toList(),
     );
