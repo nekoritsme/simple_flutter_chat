@@ -14,4 +14,6 @@ abstract interface class ChatsRepository {
     required String? compareWithMessage,
     required String? compareWithMessageId,
   });
+
+  Future<void> pinChat({required String chatId, required bool isPinned});
 }

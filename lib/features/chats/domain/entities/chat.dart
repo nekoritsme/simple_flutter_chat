@@ -5,6 +5,7 @@ class Chat {
   final DateTime lastMessageTimestamp;
   final Map<String, DateTime> lastReadTimestamp;
   final List<String> participants;
+  final bool isPinned;
 
   Chat({
     required this.id,
@@ -13,5 +14,6 @@ class Chat {
     required this.lastMessageTimestamp,
     required this.lastReadTimestamp,
     required this.participants,
+    required this.isPinned,
   });
 }

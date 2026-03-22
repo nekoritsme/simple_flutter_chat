@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:simple_flutter_chat/features/chats/domain/usecases/change_pinned_state_usecase.dart';
 import 'package:simple_flutter_chat/features/chats/domain/usecases/get_chats_streams_usecase.dart';
 import 'package:simple_flutter_chat/features/chats/domain/usecases/get_current_user_usecase.dart';
 import 'package:simple_flutter_chat/features/chats/domain/usecases/get_specific_user_stream_usecase.dart';
 import 'package:simple_flutter_chat/features/chats/presentation/widgets/chat_item.dart';
+import 'package:vibration/vibration.dart';
 
 import '../../domain/entities/chat.dart';
 import '../../domain/usecases/get_unread_count_stream_usecase.dart';
@@ -30,6 +32,77 @@ class _ChatListWidgetState extends State<ChatListWidget> {
   void initState() {
     _chatsStream = GetChatsStreamsUseCase().getChatsStream();
     super.initState();
+  }
+
+  Future<void> _showMessageMenu({
+    required Offset globalPosition,
+    required String chatId,
+    required Chat chatItem,
+  }) async {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    const horizontalPadding = 8;
+    const estimatedMenuWidth = 180.0;
+    final safeY = globalPosition.dy.clamp(8, overlay.size.height - 8);
+    final safeX = (globalPosition.dx - estimatedMenuWidth).clamp(
+      horizontalPadding,
+      overlay.size.width - horizontalPadding,
+    );
+    final leftAnchoredPoint = Offset(safeX.toDouble(), safeY.toDouble());
+    final position = RelativeRect.fromRect(
+      Rect.fromPoints(leftAnchoredPoint, leftAnchoredPoint),
+      Offset.zero & overlay.size,
+    );
+
+    if (await Vibration.hasVibrator()) {
+      Vibration.vibrate(duration: 50);
+    }
+
+    final selectedAction = await showMenu<String>(
+      shape: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+      surfaceTintColor: Theme.of(context).colorScheme.onSurface,
+      color: Theme.of(context).colorScheme.onSurface,
+      popUpAnimationStyle: AnimationStyle(
+        curve: Curves.bounceOut,
+        duration: const Duration(milliseconds: 0),
+      ),
+      context: context,
+      position: position,
+      items: [
+        PopupMenuItem<String>(
+          value: "pin",
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                chatItem.isPinned
+                    ? "Unpin chat"
+                    : "Pin chat", // TODO: change unpin/pin
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+              ),
+              const SizedBox(width: 10),
+              Icon(
+                Icons.push_pin,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    if (selectedAction == "pin") {
+      await ChangePinnedStateUseCase().call(
+        chatId: chatId,
+        isPinned: chatItem.isPinned,
+      );
+    }
   }
 
   @override
@@ -136,15 +209,24 @@ class _ChatListWidgetState extends State<ChatListWidget> {
                   builder: (context, unreadSnapshot) {
                     final unreadCount = unreadSnapshot.data ?? 0;
 
-                    return ChatItemWidget(
-                      chatNickname: nickname,
-                      lastMessage: loadedChats[index].lastMessage,
-                      lastMessageTimestamp: time,
-                      unreadCount: unreadCount,
-                      chatId: loadedChats[index].id,
-                      isRead: isRead,
-                      isMe: isMe,
-                      profileUrl: userData.profilePictureUrl,
+                    return GestureDetector(
+                      onLongPressStart: (details) {
+                        _showMessageMenu(
+                          globalPosition: details.globalPosition,
+                          chatId: loadedChats[index].id,
+                          chatItem: loadedChats[index],
+                        );
+                      },
+                      child: ChatItemWidget(
+                        chatNickname: nickname,
+                        lastMessage: loadedChats[index].lastMessage,
+                        lastMessageTimestamp: time,
+                        unreadCount: unreadCount,
+                        chatId: loadedChats[index].id,
+                        isRead: isRead,
+                        isMe: isMe,
+                        profileUrl: userData.profilePictureUrl,
+                      ),
                     );
                   },
                 );

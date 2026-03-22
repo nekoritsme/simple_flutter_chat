@@ -56,6 +56,7 @@ class ChatsRepositoryImpl implements ChatsRepository {
           currentUser: FieldValue.serverTimestamp(),
           otherUser: FieldValue.serverTimestamp(),
         },
+        "isPinned": false,
       });
 
       talker.info("Chat has been created");
@@ -72,6 +73,7 @@ class ChatsRepositoryImpl implements ChatsRepository {
     return _firebaseFirestore
         .collection("chats")
         .where("participants", arrayContains: _firebaseAuth.currentUser!.uid)
+        .orderBy("isPinned", descending: true)
         .orderBy("lastMessageTimestamp", descending: true)
         .snapshots()
         .map((querySnapshot) {
@@ -99,6 +101,7 @@ class ChatsRepositoryImpl implements ChatsRepository {
               lastMessageTimestamp: lastMessageTimestamp ?? DateTime.now(),
               lastReadTimestamp: lastReadTimestamp,
               participants: List<String>.from(data['participants'] ?? []),
+              isPinned: data["isPinned"],
             );
           }).toList();
         });
@@ -178,5 +181,12 @@ class ChatsRepositoryImpl implements ChatsRepository {
             });
       }
     }
+  }
+
+  @override
+  Future<void> pinChat({required String chatId, required bool isPinned}) async {
+    await _firebaseFirestore.collection("chats").doc(chatId).update({
+      "isPinned": isPinned == true ? false : true,
+    });
   }
 }
