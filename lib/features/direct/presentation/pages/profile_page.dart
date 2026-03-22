@@ -44,10 +44,12 @@ class ProfilePage extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => GalleryPage(
+                PageRouteBuilder(
+                  pageBuilder: (context, _, __) => GalleryPage(
                     imageProvider: NetworkImage(profilePictureUrl),
                   ),
+                  transitionDuration: Duration.zero,
+                  reverseTransitionDuration: Duration.zero,
                 ),
               );
             },

@@ -75,12 +75,14 @@ class _SettingsPageState extends State<SettingsPage> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => GalleryPage(
+                            PageRouteBuilder(
+                              pageBuilder: (context, _, __) => GalleryPage(
                                 imageProvider: NetworkImage(
                                   userData.profilePictureUrl!,
                                 ),
                               ),
+                              transitionDuration: Duration.zero,
+                              reverseTransitionDuration: Duration.zero,
                             ),
                           );
                         },

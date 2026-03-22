@@ -171,12 +171,16 @@ class MessageBubble extends StatelessWidget {
                                   onTap: () {
                                     Navigator.push(
                                       context,
-                                      MaterialPageRoute(
-                                        builder: (context) => GalleryPage(
+                                      PageRouteBuilder(
+                                        pageBuilder: (context, _, __) =>
+                                            GalleryPage(
                                           imageProvider: NetworkImage(
                                             imageDownloadUrl!,
                                           ),
                                         ),
+                                        transitionDuration: Duration.zero,
+                                        reverseTransitionDuration:
+                                            Duration.zero,
                                       ),
                                     );
                                   },
