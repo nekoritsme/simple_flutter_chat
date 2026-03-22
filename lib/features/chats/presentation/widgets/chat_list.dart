@@ -79,9 +79,7 @@ class _ChatListWidgetState extends State<ChatListWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                chatItem.isPinned
-                    ? "Unpin chat"
-                    : "Pin chat", // TODO: change unpin/pin
+                chatItem.isPinned ? "Unpin chat" : "Pin chat",
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(color: Colors.white),
