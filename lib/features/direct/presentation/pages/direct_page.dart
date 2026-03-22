@@ -9,6 +9,7 @@ import 'package:simple_flutter_chat/features/direct/domain/usecases/get_lastmess
 import 'package:simple_flutter_chat/features/direct/domain/usecases/get_participants_usecase.dart';
 import 'package:simple_flutter_chat/features/direct/domain/usecases/send_image_usecase.dart';
 import 'package:simple_flutter_chat/features/direct/domain/usecases/submit_message_usecase.dart';
+import 'package:simple_flutter_chat/features/direct/presentation/pages/profile_page.dart';
 import 'package:simple_flutter_chat/features/direct/presentation/widgets/direct_messages.dart';
 
 import '../../../chats/domain/usecases/get_specific_user_stream_usecase.dart';
@@ -414,90 +415,102 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
         ),
       ),
       appBar: AppBar(
-        title: Row(
-          children: [
-            if (_otherUserId == null) ...[
-              Text(
-                "Loading",
-                style: theme.textTheme.titleLarge?.copyWith(fontSize: 12),
-              ),
-            ] else ...[
-              StreamBuilder(
-                stream: GetSpecificUserStreamUseCase().getSpecificUserStream(
-                  uid: _otherUserId!,
-                ),
-                builder: (context, userProfileSnapshot) {
-                  if (userProfileSnapshot.connectionState ==
-                      ConnectionState.waiting) {
-                    return Text("Loading");
-                  }
+        title: StreamBuilder(
+          stream: GetSpecificUserStreamUseCase().getSpecificUserStream(
+            uid: _otherUserId!,
+          ),
+          builder: (context, userProfileSnapshot) {
+            if (userProfileSnapshot.connectionState ==
+                ConnectionState.waiting) {
+              return Text("Loading");
+            }
 
-                  if (userProfileSnapshot.hasError) {
-                    return Text("Error");
-                  }
+            if (userProfileSnapshot.hasError) {
+              return Text("Error");
+            }
 
-                  if (!userProfileSnapshot.hasData) {
-                    return Text("No data found");
-                  }
+            if (!userProfileSnapshot.hasData) {
+              return Text("No data found");
+            }
 
-                  final data = userProfileSnapshot.data!;
+            final data = userProfileSnapshot.data!;
 
-                  return Hero(
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfilePage(
+                      username: data.nickname ?? "",
+                      profilePictureUrl: data.profilePictureUrl ?? "",
+                    ),
+                  ),
+                );
+              },
+              child: Row(
+                children: [
+                  Hero(
                     tag: "photo",
                     child: CircleAvatar(
                       backgroundImage: NetworkImage(
                         data.profilePictureUrl ?? "",
                       ),
                     ),
-                  );
-                },
-              ),
-            ],
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.chatNickname,
-                  style: theme.textTheme.titleLarge?.copyWith(fontSize: 14),
-                ),
-                if (_otherUserId == null)
-                  Text(
-                    "Loading",
-                    style: theme.textTheme.titleLarge?.copyWith(fontSize: 12),
-                  )
-                else
-                  StreamBuilder(
-                    stream: GetActivityStatusStreamUseCase()
-                        .getActivityStatusStream(userId: _otherUserId!),
-                    builder: (context, activityStatusSnapshot) {
-                      if (activityStatusSnapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return Text("Loading");
-                      }
-
-                      if (activityStatusSnapshot.hasError) {
-                        return Text("Error");
-                      }
-
-                      if (!activityStatusSnapshot.hasData) {
-                        return Text("No data found");
-                      }
-
-                      final data = activityStatusSnapshot.data!;
-
-                      return Text(
-                        data.isOnline ? "Online" : _formatDate(data.lastSeen),
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontSize: 12,
-                          color: Colors.white.withAlpha(150),
-                        ),
-                      );
-                    },
                   ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.chatNickname,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontSize: 14,
+                        ),
+                      ),
+                      if (_otherUserId == null)
+                        Text(
+                          "Loading",
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontSize: 12,
+                          ),
+                        )
+                      else
+                        StreamBuilder(
+                          stream: GetActivityStatusStreamUseCase()
+                              .getActivityStatusStream(userId: _otherUserId!),
+                          builder: (context, activityStatusSnapshot) {
+                            if (activityStatusSnapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Text("Loading");
+                            }
+
+                            if (activityStatusSnapshot.hasError) {
+                              return Text("Error");
+                            }
+
+                            if (!activityStatusSnapshot.hasData) {
+                              return Text("No data found");
+                            }
+
+                            final data = activityStatusSnapshot.data!;
+
+                            return Text(
+                              data.isOnline
+                                  ? "Online"
+                                  : _formatDate(data.lastSeen),
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontSize: 12,
+                                color: Colors.white.withAlpha(150),
+                              ),
+                            );
+                          },
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
         ),
         backgroundColor: theme.colorScheme.onSurface,
         leading: IconButton(

@@ -73,14 +73,17 @@ class _ChatAppState extends State<ChatApp> {
 
   @override
   Widget build(BuildContext context) {
+    final surface = Color.fromARGB(255, 16, 28, 34);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+
       theme: ThemeData(
+        scaffoldBackgroundColor: surface,
         colorScheme: ColorScheme.fromSeed(
           seedColor: Color.fromARGB(255, 19, 164, 236),
           onPrimary: Color.fromARGB(255, 19, 164, 236),
           onSecondary: Color.fromARGB(51, 19, 164, 236),
-          onSurface: Color.fromARGB(255, 16, 28, 34),
+          onSurface: surface,
           onSurfaceVariant: Color.fromARGB(255, 30, 41, 59),
           onTertiary: Color.fromARGB(255, 15, 23, 42),
           outline: Color.fromARGB(255, 148, 163, 184),
