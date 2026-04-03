@@ -11,6 +11,7 @@ class ChatItemWidget extends StatelessWidget {
     required this.lastMessageTimestamp,
     required this.unreadCount,
     required this.chatId,
+    required this.isPinned,
     this.isMe,
     this.isRead,
     this.profileUrl,
@@ -24,6 +25,7 @@ class ChatItemWidget extends StatelessWidget {
   final String? profileUrl;
   final bool? isRead;
   final bool? isMe;
+  final bool isPinned;
 
   String _formatChatTimestamp(DateTime? timestamp) {
     if (timestamp == null) return "";
@@ -74,6 +76,7 @@ class ChatItemWidget extends StatelessWidget {
         );
       },
       child: ListTile(
+        tileColor: isPinned ? theme.colorScheme.onSurfaceVariant : null,
         title: Text(
           chatNickname,
           style: theme.textTheme.bodyMedium?.copyWith(
@@ -97,55 +100,63 @@ class ChatItemWidget extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              lastMessageTime,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: unreadCount > 0 ? theme.colorScheme.primary : null,
-                fontWeight: FontWeight.w800,
-                fontSize: 12,
-              ),
-            ),
-            const SizedBox(height: 2),
-            if (unreadCount > 0)
-              Container(
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: theme.colorScheme.onPrimary.withAlpha(100),
-                      offset: Offset(-8, 0),
-                      blurRadius: 30,
-                      spreadRadius: -8,
-                    ),
-                  ],
-                ),
-                width: 25,
-                height: 25,
-                child: CircleAvatar(
-                  backgroundColor: theme.colorScheme.primary,
-                  child: Text(
-                    unreadCount >= 99 ? 99.toString() : unreadCount.toString(),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13,
-                    ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  lastMessageTime,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: unreadCount > 0 ? theme.colorScheme.primary : null,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
                   ),
                 ),
-              ),
-            if (unreadCount == 0 &&
-                lastMessageTimestamp != null &&
-                isMe != null &&
-                isMe!)
-              Icon(
-                Icons.done_all,
-                color: isRead != null && isRead!
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurfaceVariant,
-              ),
+                const SizedBox(height: 2),
+                if (unreadCount > 0)
+                  Container(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: theme.colorScheme.onPrimary.withAlpha(100),
+                          offset: Offset(-8, 0),
+                          blurRadius: 30,
+                          spreadRadius: -8,
+                        ),
+                      ],
+                    ),
+                    width: 25,
+                    height: 25,
+                    child: CircleAvatar(
+                      backgroundColor: theme.colorScheme.primary,
+                      child: Text(
+                        unreadCount >= 99
+                            ? 99.toString()
+                            : unreadCount.toString(),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ),
+                if (unreadCount == 0 &&
+                    lastMessageTimestamp != null &&
+                    isMe != null &&
+                    isMe!)
+                  Icon(
+                    Icons.done_all,
+                    color: isRead != null && isRead!
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurfaceVariant,
+                  ),
+              ],
+            ),
           ],
         ),
         leading: profileUrl != null

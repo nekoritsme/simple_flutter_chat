@@ -140,6 +140,7 @@ class _ChatListWidgetState extends State<ChatListWidget> {
                 lastMessageTimestamp: DateTime(0),
                 unreadCount: 0,
                 chatId: loadedChats[index].id,
+                isPinned: loadedChats[index].isPinned,
               );
             }
 
@@ -156,6 +157,7 @@ class _ChatListWidgetState extends State<ChatListWidget> {
                     lastMessageTimestamp: DateTime(0),
                     unreadCount: 0,
                     chatId: "wait",
+                    isPinned: false,
                   );
                 }
 
@@ -166,6 +168,7 @@ class _ChatListWidgetState extends State<ChatListWidget> {
                     lastMessageTimestamp: DateTime(0),
                     unreadCount: 0,
                     chatId: "error",
+                    isPinned: false,
                   );
                 }
 
@@ -176,6 +179,7 @@ class _ChatListWidgetState extends State<ChatListWidget> {
                     lastMessageTimestamp: DateTime(0),
                     unreadCount: 0,
                     chatId: "not found",
+                    isPinned: false,
                   );
                 }
 
@@ -224,6 +228,7 @@ class _ChatListWidgetState extends State<ChatListWidget> {
                         isRead: isRead,
                         isMe: isMe,
                         profileUrl: userData.profilePictureUrl,
+                        isPinned: loadedChats[index].isPinned,
                       ),
                     );
                   },

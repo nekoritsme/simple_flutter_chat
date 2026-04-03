@@ -199,6 +199,13 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
         _editMode = EditMode.message;
       });
     }
+
+    if (_editMode == EditMode.message) {
+      setState(() {
+        _editMode = EditMode.message;
+      });
+    }
+
     if (enteredMessage.isEmpty) return;
     if (enteredMessage.trim().isEmpty) return;
     FocusScope.of(context).unfocus();
@@ -417,7 +424,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
       appBar: AppBar(
         title: StreamBuilder(
           stream: GetSpecificUserStreamUseCase().getSpecificUserStream(
-            uid: _otherUserId!,
+            uid: _otherUserId ?? "",
           ),
           builder: (context, userProfileSnapshot) {
             if (userProfileSnapshot.connectionState ==
