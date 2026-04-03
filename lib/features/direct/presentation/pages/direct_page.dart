@@ -424,7 +424,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
       appBar: AppBar(
         title: StreamBuilder(
           stream: GetSpecificUserStreamUseCase().getSpecificUserStream(
-            uid: _otherUserId ?? "",
+            uid: _otherUserId ?? "DOWLEORPLP",
           ),
           builder: (context, userProfileSnapshot) {
             if (userProfileSnapshot.connectionState ==
