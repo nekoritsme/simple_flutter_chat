@@ -329,13 +329,15 @@ class _DirectMessagesWidgetState extends State<DirectMessagesWidget> {
 
                 String? replyTo;
                 if (chatMessage.replyMessageId != null) {
-                  replyTo =
+                  final replyNickname =
                       FindMessageIdReturnNicknameUseCase().call(
                             messageId: chatMessage.replyMessageId!,
-                          ) ==
-                          widget.otherUserNickname
-                      ? widget.otherUserNickname
-                      : "You";
+                          );
+                  if (replyNickname != null) {
+                    replyTo = replyNickname == widget.otherUserNickname
+                        ? widget.otherUserNickname
+                        : "You";
+                  }
                 }
 
                 final messageText = (chatMessage.text).toString();

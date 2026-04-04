@@ -6,6 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:simple_flutter_chat/core/extensions/timestamp_extensions.dart';
 import 'package:simple_flutter_chat/core/logger.dart';
+import 'package:simple_flutter_chat/features/direct/domain/repositories/direct_messages_controller_repository.dart';
 import 'package:simple_flutter_chat/shared/domain/repositories/user_repository.dart';
 import 'package:uuid/uuid.dart';
 
@@ -16,14 +17,18 @@ class DirectRepositoryImpl implements DirectRepository {
   final FirebaseFirestore _firestore;
   final UserRepository _userRepo;
   final FirebaseStorage _firebaseStorage;
+  final DirectMessagesControllerRepository _directMessagesControllerRepository;
 
   DirectRepositoryImpl({
     required FirebaseFirestore firestore,
     required UserRepository userRepo,
     required FirebaseStorage firebaseStorage,
+    required DirectMessagesControllerRepository
+    directMessagesControllerRepository,
   }) : _firestore = firestore,
        _userRepo = userRepo,
-       _firebaseStorage = firebaseStorage;
+       _firebaseStorage = firebaseStorage,
+       _directMessagesControllerRepository = directMessagesControllerRepository;
 
   @override
   Future<Either<String, List<String>>> getParticipants({
@@ -166,6 +171,7 @@ class DirectRepositoryImpl implements DirectRepository {
       }
 
       await messagesRef.doc(messageId).delete();
+      _directMessagesControllerRepository.removeMessage(messageId: messageId);
 
       if (isLastMessage) {
         lastMessageQuery = await messagesRef

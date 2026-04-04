@@ -212,9 +212,25 @@ class DirectMessagesControllerRepositoryImpl
   }
 
   @override
-  String findByMessageIdAndReturnNickname({required String messageId}) {
-    final message = _messages.firstWhere((msg) => msg.messageId == messageId);
+  String? findByMessageIdAndReturnNickname({required String messageId}) {
+    Message? message;
+    for (final msg in _messages) {
+      if (msg.messageId == messageId) {
+        message = msg;
+        break;
+      }
+    }
 
-    return message.nickname;
+    return message?.nickname;
+  }
+
+  @override
+  void removeMessage({required String messageId}) {
+    final before = _messages.length;
+    _messages.removeWhere((m) => m.messageId == messageId);
+    if (_messages.length != before) {
+      _sortAsc();
+      _emit();
+    }
   }
 }

@@ -222,6 +222,8 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
         // TODO: Display error on the screen
       },
       ifRight: (_) {
+        _replyMessageId = null;
+        _replyMessage = null;
         UpdateLastMessageUseCase().updateLastMessage(
           chatId: widget.chatId,
           compareWithMessage: null,

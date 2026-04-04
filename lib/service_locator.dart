@@ -47,6 +47,8 @@ Future<void> initializeSingletons() async {
       firestore: sl<FirebaseFirestoreSource>().instance,
       userRepo: sl<UserRepository>(),
       firebaseStorage: sl<FirebaseStorageSource>().instance,
+      directMessagesControllerRepository:
+          sl<DirectMessagesControllerRepository>(),
     ),
   );
 
